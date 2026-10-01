@@ -12,3 +12,4 @@ export const getConfig = (): Config => ({
 export * from './chainData';
 export * from './customRpc';
 export * from './metadata';
+export * from './course';

@@ -1,7 +1,7 @@
 'use client';
 
 import { MouseEvent, useRef, useState } from 'react';
-import { Checkmark, Copy, Download, Globe, Logout, Menu as MenuIcon, Wallet, Warning } from '@carbon/icons-react';
+import { Checkmark, Copy, Download, Globe, Logout, Menu as MenuIcon, Wallet } from '@carbon/icons-react';
 import {
   ListItemIcon,
   Menu as MuiMenu,
@@ -203,20 +203,6 @@ export const Menu = () => {
               <Download size={16} />
             </ListItemIcon>
             {isDownloading ? 'Authenticating...' : 'Download Recovery Phrase'}
-          </SMenuItem>
-        )}
-
-        {hasWallet && (
-          <SMenuItem
-            onClick={() => {
-              handleClose();
-              setModalOpen(ModalType.SELF_REPORT);
-            }}
-          >
-            <ListItemIcon>
-              <Warning size={16} />
-            </ListItemIcon>
-            Report Compromised Address
           </SMenuItem>
         )}
 

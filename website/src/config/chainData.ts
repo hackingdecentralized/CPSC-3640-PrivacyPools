@@ -1,5 +1,6 @@
 import { Address, parseEther, parseUnits } from 'viem';
-import { arbitrum, base, bsc, Chain, mainnet, optimism, optimismSepolia, sepolia } from 'viem/chains';
+import { arbitrum, base, bsc, Chain, mainnet, optimism, sepolia } from 'viem/chains';
+import { courseConfig } from '~/config/course';
 import { readCustomRpcMap } from '~/config/customRpc';
 import { getAspEndpointForChain, getEnv } from '~/config/env';
 import { sUSDSAbi } from '~/config/sUSDSAbi';
@@ -10,6 +11,7 @@ import arbitrumIcon from '~/assets/icons/arbitrum.svg';
 import bnbIcon from '~/assets/icons/bnb.svg';
 import boldIcon from '~/assets/icons/bold.svg';
 import bscIcon from '~/assets/icons/bsc.svg';
+import bulldogsIcon from '~/assets/icons/bulldogs.svg';
 import daiIcon from '~/assets/icons/dai.svg';
 import frxusdIcon from '~/assets/icons/frxusd.svg';
 import fxusdIcon from '~/assets/icons/fxusd.svg';
@@ -26,11 +28,12 @@ import woethIcon from '~/assets/icons/woeth.svg';
 import wstethIcon from '~/assets/icons/wsteth.svg';
 import yusndIcon from '~/assets/icons/yusnd.svg';
 
-const { ALCHEMY_KEY, IS_TESTNET, SHOW_TEST_CHAINS } = getEnv();
+const { ALCHEMY_KEY, IS_TESTNET, SHOW_TEST_CHAINS, SEPOLIA_RPC_URL, RELAYER_URL } = getEnv();
 
 // Add chains to the whitelist to be used in the app
 const mainnetChains: readonly [Chain, ...Chain[]] = [mainnet, optimism, base, bsc, arbitrum];
-const testnetChains: readonly [Chain, ...Chain[]] = [sepolia, optimismSepolia];
+// CPSC 3640: the course deployment lives on Sepolia only.
+const testnetChains: readonly [Chain, ...Chain[]] = [sepolia];
 
 export const whitelistedChains = IS_TESTNET ? testnetChains : mainnetChains;
 
@@ -53,7 +56,8 @@ export type ChainAssets =
   | 'USND'
   | 'fxUSD'
   | 'BSCUSD'
-  | 'BOLD';
+  | 'BOLD'
+  | 'BULLDOGS';
 
 export interface AlternativeTokenConfig {
   tokenAddress: Address;
@@ -566,93 +570,62 @@ const mainnetChainData: ChainData = {
   },
 };
 
+// CPSC 3640 course deployment. Pool addresses, scopes and blocks come from course.json
+// (scripts/sync-website-config.mjs); only presentation lives here.
+const coursePoolPresentation: Record<
+  string,
+  Pick<PoolInfo, 'asset' | 'icon' | 'color' | 'isStableAsset' | 'isNativeToken'> & {
+    maxDeposit: (decimals: number) => bigint;
+  }
+> = {
+  ETH: {
+    asset: 'ETH',
+    icon: mainnetIcon.src,
+    color: '#627EEA',
+    isStableAsset: false,
+    isNativeToken: true,
+    maxDeposit: () => parseEther('1'),
+  },
+  BULLDOGS: {
+    asset: 'BULLDOGS',
+    icon: bulldogsIcon.src,
+    color: '#00356B',
+    isStableAsset: false,
+    isNativeToken: false,
+    maxDeposit: (decimals) => parseUnits('10000', decimals),
+  },
+};
+
+// One RPC for both wagmi and the SDK event scan: there is no Hypersync proxy.
+const sepoliaRpcUrl = SEPOLIA_RPC_URL || sepolia.rpcUrls.default.http[0];
+
 const testnetChainData: ChainData = {
-  // Testnets
   [sepolia.id]: {
     name: sepolia.name,
     symbol: sepolia.nativeCurrency.symbol,
     decimals: sepolia.nativeCurrency.decimals,
     image: mainnetIcon.src,
     explorerUrl: sepolia.blockExplorers.default.url,
-    sdkRpcUrl: `/api/hypersync-rpc?chainId=11155111`, // Secure Hypersync proxy (relative URL)
-    rpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}`,
+    sdkRpcUrl: sepoliaRpcUrl,
+    rpcUrl: sepoliaRpcUrl,
     aspUrl: getAspEndpointForChain(sepolia.id),
-    relayers: [
-      { name: 'Testnet Relay', url: 'https://testnet-relayer.privacypools.com' },
-      { name: 'Freedom Relay', url: 'https://fastrelay.xyz' },
-    ],
-    poolInfo: [
-      {
+    relayers: [{ name: 'Class Relayer', url: RELAYER_URL }],
+    poolInfo: courseConfig.pools.map((pool): PoolInfo => {
+      const presentation = coursePoolPresentation[pool.symbol];
+      if (!presentation) throw new Error(`course.json pool ${pool.symbol} has no presentation config in chainData.ts`);
+      const { maxDeposit, ...rest } = presentation;
+      return {
         chainId: sepolia.id,
-        assetAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-        address: '0x644d5A2554d36e27509254F32ccfeBe8cd58861f',
-        scope: 13541713702858359530363969798588891965037210808099002426745892519913535247342n,
-        deploymentBlock: 8587019n,
-        entryPointAddress: '0x34A2068192b1297f2a7f85D7D8CdE66F8F0921cB',
-        maxDeposit: parseEther('1'),
-        asset: 'ETH',
-        assetDecimals: 18,
-        icon: mainnetIcon.src,
-        isStableAsset: false,
-        isNativeToken: true,
-      },
-      {
-        chainId: sepolia.id,
-        assetAddress: '0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0',
-        address: '0x6709277E170DEe3E54101cDb73a450E392ADfF54',
-        scope: 9423591183392302543658559874370404687995075471172962430042059179876435583731n,
-        deploymentBlock: 8587019n,
-        entryPointAddress: '0x34A2068192b1297f2a7f85D7D8CdE66F8F0921cB',
-        maxDeposit: parseUnits('100', 6),
-        asset: 'USDT',
-        assetDecimals: 6,
-        isStableAsset: true,
-        isNativeToken: false,
-      },
-      {
-        chainId: sepolia.id,
-        assetAddress: '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238',
-        address: '0x0b062Fe33c4f1592D8EA63f9a0177FcA44374C0f',
-        scope: 18021368285297593722986850677939473668942851500120722179451099768921996600282n,
-        deploymentBlock: 8587019n,
-        entryPointAddress: '0x34A2068192b1297f2a7f85D7D8CdE66F8F0921cB',
-        maxDeposit: parseUnits('100', 6),
-        asset: 'USDC',
-        assetDecimals: 6,
-        isStableAsset: true,
-        isNativeToken: false,
-      },
-    ],
-  },
-  [optimismSepolia.id]: {
-    name: optimismSepolia.name,
-    symbol: optimismSepolia.nativeCurrency.symbol,
-    decimals: optimismSepolia.nativeCurrency.decimals,
-    image: optimismIcon.src,
-    explorerUrl: optimismSepolia.blockExplorers.default.url,
-    sdkRpcUrl: `/api/hypersync-rpc?chainId=11155420`, // Secure Hypersync proxy (relative URL)
-    rpcUrl: `https://opt-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}`,
-    aspUrl: getAspEndpointForChain(optimismSepolia.id),
-    relayers: [
-      { name: 'Testnet Relay', url: 'https://testnet-relayer.privacypools.com' },
-      // { name: 'Freedom Relay', url: 'https://fastrelay.xyz' },
-    ],
-    poolInfo: [
-      {
-        chainId: optimismSepolia.id,
-        assetAddress: '0x4200000000000000000000000000000000000006',
-        address: '0x6d79e6062C193F6aC31ca06D98D86Dc370EeDdA6',
-        scope: 8429575013385335244333569749759334171788704610098725134379761398714548791590n,
-        deploymentBlock: 32900681n,
-        entryPointAddress: '0x54aCA0D27500669FA37867233e05423701f11ba1',
-        maxDeposit: parseEther('1'),
-        asset: 'WETH',
-        assetDecimals: 18,
-        icon: mainnetIcon.src,
-        isStableAsset: false,
-        isNativeToken: true,
-      },
-    ],
+        address: pool.address,
+        assetAddress: pool.asset,
+        scope: pool.scope,
+        deploymentBlock: pool.deploymentBlock,
+        entryPointAddress: courseConfig.entrypoint,
+        maxDeposit: maxDeposit(pool.decimals),
+        assetDecimals: pool.decimals,
+        ...rest,
+      };
+    }),
   },
 };
 

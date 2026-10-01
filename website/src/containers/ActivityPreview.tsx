@@ -41,6 +41,8 @@ export const ActivityPreview = () => {
       {
         queryKey: ['asp_pools_stats', 'non_test', ASP_ENDPOINT_NON_TEST],
         queryFn: () => aspClient.fetchPoolStats(ASP_ENDPOINT_NON_TEST, 'all'),
+        // CPSC 3640: no mainnet ASP is configured; skip instead of requesting `/undefined/...`
+        enabled: !!ASP_ENDPOINT_NON_TEST,
         refetchInterval: 120000,
         staleTime: 60000,
         refetchOnMount: false,
@@ -54,6 +56,7 @@ export const ActivityPreview = () => {
   const { data: globalStatisticsData } = useQuery({
     queryKey: ['global_statistics', ASP_ENDPOINT_NON_TEST],
     queryFn: () => aspClient.fetchGlobalStatistics(ASP_ENDPOINT_NON_TEST),
+    enabled: !!ASP_ENDPOINT_NON_TEST, // CPSC 3640: see the pools-stats query above
     refetchInterval: 60000,
     staleTime: 30000,
     refetchOnMount: false,

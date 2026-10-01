@@ -511,6 +511,8 @@ export const AllPoolsStats = () => {
       {
         queryKey: ['asp_pools_stats', 'non_test', ASP_ENDPOINT_NON_TEST],
         queryFn: () => aspClient.fetchPoolStats(ASP_ENDPOINT_NON_TEST, 'all'),
+        // CPSC 3640: no mainnet ASP is configured; skip instead of requesting `/undefined/...`
+        enabled: !!ASP_ENDPOINT_NON_TEST,
         refetchInterval: 120000, // 2 minutes
         staleTime: 60000, // Consider data fresh for 60 seconds
         retryOnMount: false,
