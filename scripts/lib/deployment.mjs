@@ -43,13 +43,30 @@ export function parseForgeDeployment(rawText) {
   };
 }
 
-/** Find the smoke deposit tx hashes in forge's broadcast run-latest.json for CourseSmoke. */
+const SMOKE_DEPOSITS = {
+  eth: { signature: 'deposit(uint256)', selector: '0xb6b55f25' },
+  token: { signature: 'deposit(address,uint256,uint256)', selector: '0x0efe6a8b' },
+};
+
+/**
+ * Find the smoke deposit tx hashes in forge's broadcast run-latest.json for CourseSmoke.
+ * Matches on the calldata selector as well as forge's `function` label, which differs across forge versions.
+ */
 export function findSmokeTxs(runJson) {
-  const find = (fn) => runJson.transactions.find((t) => t.function === fn)?.hash;
-  const ethDepositTx = find('deposit(uint256)');
-  const tokenDepositTx = find('deposit(address,uint256,uint256)');
-  if (!ethDepositTx) throw new Error('smoke run has no ETH deposit (deposit(uint256))');
-  if (!tokenDepositTx) throw new Error('smoke run has no token deposit (deposit(address,uint256,uint256))');
+  const txs = runJson.transactions ?? [];
+  const selectorOf = (t) => (t.transaction?.input ?? t.transaction?.data ?? '').slice(0, 10).toLowerCase();
+  const find = ({ signature, selector }) =>
+    txs.find((t) => t.function === signature || selectorOf(t) === selector)?.hash;
+  const ethDepositTx = find(SMOKE_DEPOSITS.eth);
+  const tokenDepositTx = find(SMOKE_DEPOSITS.token);
+  if (!ethDepositTx || !tokenDepositTx) {
+    const seen = txs.map((t) => `${t.function ?? '?'} ${selectorOf(t) || '?'} ${t.hash ?? ''}`).join('\n  ') || '(none)';
+    const missing = !ethDepositTx ? 'ETH deposit (deposit(uint256))' : 'token deposit (deposit(address,uint256,uint256))';
+    throw new Error(
+      `smoke run has no ${missing}. Is this CourseSmoke's run-latest.json, and did step 5 finish?\n` +
+        `transactions in the file:\n  ${seen}`,
+    );
+  }
   return { ethDepositTx, tokenDepositTx };
 }
 
