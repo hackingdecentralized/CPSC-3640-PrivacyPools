@@ -28,7 +28,7 @@ export const DataSection = () => {
 
   const aspOrRelayer = {
     label: isDeposit ? 'ASP' : 'Relayer',
-    value: isDeposit ? '0xBow ASP' : 'Unknown Relayer',
+    value: isDeposit ? 'Course ASP' : 'Unknown Relayer',
   };
 
   // Temporarily disabled

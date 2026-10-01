@@ -12,7 +12,7 @@ import { Providers } from '~/providers';
 
 const title = 'Privacy Pools - Anonymous & Compliant Payments';
 const description =
-  'Privacy Pools by 0xbow is a compliant way to anonymously transact on Ethereum. 0xbow blocks illicit actors to ensure pool integrity.';
+  'CPSC 3640 / CPSC 5400 course demo of Privacy Pools (built on 0xbow) on the Sepolia testnet, with a classroom ASP.';
 
 // Social-preview image URLs are absolute, so they need the public origin, e.g. https://<owner>.github.io (the
 // GitHub Pages workflow sets it). Without it Next falls back to http://localhost:3000.
