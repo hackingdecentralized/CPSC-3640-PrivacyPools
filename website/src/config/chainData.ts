@@ -11,7 +11,7 @@ import arbitrumIcon from '~/assets/icons/arbitrum.svg';
 import bnbIcon from '~/assets/icons/bnb.svg';
 import boldIcon from '~/assets/icons/bold.svg';
 import bscIcon from '~/assets/icons/bsc.svg';
-import bulldogsIcon from '~/assets/icons/bulldogs.svg';
+import bulldogsIcon from '~/assets/icons/bulldogs.webp';
 import daiIcon from '~/assets/icons/dai.svg';
 import frxusdIcon from '~/assets/icons/frxusd.svg';
 import fxusdIcon from '~/assets/icons/fxusd.svg';
