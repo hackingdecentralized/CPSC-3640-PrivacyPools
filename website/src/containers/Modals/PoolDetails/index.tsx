@@ -4,6 +4,7 @@ import { Box, Divider, styled } from '@mui/material';
 import { BaseModal } from '~/components';
 import { ModalType } from '~/types';
 import { Transaction } from '../ActivityDetails/Transaction';
+import { DebugDetails } from './DebugDetails';
 import { DetailButtons } from './DetailsButtons';
 import { DetailsHeader } from './DetailsHeader';
 import { Resume } from './Resume';
@@ -26,6 +27,10 @@ export const PoolDetails = () => {
         <Divider />
 
         <Transaction />
+
+        {/* CPSC 3640: collapsed plain-text commitment, label and precommitment */}
+        <Divider />
+        <DebugDetails />
       </ModalContainer>
     </BaseModal>
   );
