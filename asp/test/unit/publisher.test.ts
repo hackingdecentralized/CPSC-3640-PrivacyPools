@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Receipt, RootChain } from '../../src/chain.ts';
 import { cidOf } from '../../src/cid.ts';
 import { openStore, type Store } from '../../src/db.ts';
@@ -120,6 +120,22 @@ describe('publisher.tick', () => {
   });
 });
 
+describe('publisher.tick failure handling', () => {
+  it('releases the lock when recording the snapshot fails', async () => {
+    approve(1n);
+    const { chain, state } = fakeChain();
+    const publisher = make(chain);
+    vi.spyOn(store, 'insertSnapshot').mockImplementationOnce(() => {
+      throw new Error('disk full');
+    });
+    expect(await publisher.tick()).toBe('failed');
+    expect(state.sent).toEqual([]);
+    expect(store.latestSnapshot()).toBeNull();
+    expect(await publisher.tick()).toBe('published');
+    expect(state.sent).toHaveLength(1);
+  });
+});
+
 describe('publisher.reconcile', () => {
   it('confirms a pending snapshot whose transaction was mined and fails unsent ones', async () => {
     const { chain, state } = fakeChain(7n);
@@ -140,6 +156,7 @@ describe('publisher.reconcile', () => {
     const fresh = fakeChain(null);
     const publisher = make(fresh.chain);
     await publisher.reconcile();
+    now += 3_600;
     expect(await publisher.tick()).toBe('published');
     expect(fresh.state.sent).toHaveLength(1);
     expect(await publisher.tick()).toBe('waiting');

@@ -54,19 +54,21 @@ export function createPublisher({ store, chain, chainId, entrypoint, clock, log 
     const settings = store.getSettings();
     if (settings.freezeRoots) return 'frozen';
     const last = store.latestSnapshot();
-    if (!forceRepublish && last && clock() - last.createdAt < settings.publishIntervalSec) return 'waiting';
+    if (last && clock() - last.createdAt < settings.publishIntervalSec) return 'waiting';
 
     const labels = approvedLabels(store.listDeposits(), store.latestDecisions());
     if (labels.length === 0) return 'empty';
     const root = treeRoot(labels);
+    // A reconcile mismatch skips only this check; the publish interval above still applies.
     if (!forceRepublish && store.latestConfirmedSnapshot()?.root === root) return 'unchanged';
 
     busy = true;
-    const createdAt = clock();
-    const document = encodeSnapshotDocument({ chainId, entrypoint, root: root.toString(), labels: labels.map(String), createdAt });
-    const cid = await cidOf(document);
-    const id = store.insertSnapshot({ root, cid, document, createdAt });
+    let id: number | null = null;
     try {
+      const createdAt = clock();
+      const document = encodeSnapshotDocument({ chainId, entrypoint, root: root.toString(), labels: labels.map(String), createdAt });
+      const cid = await cidOf(document);
+      id = store.insertSnapshot({ root, cid, document, createdAt });
       const txHash = await chain.updateRoot(root, cid);
       store.markSnapshotSent(id, txHash);
       const receipt = await chain.waitForReceipt(txHash);
@@ -80,7 +82,9 @@ export function createPublisher({ store, chain, chainId, entrypoint, clock, log 
       log(`published ASP root ${root} (${labels.length} labels, cid ${cid}, tx ${txHash})`);
       return 'published';
     } catch (err) {
-      store.markSnapshotFailed(id, err instanceof Error ? err.message : String(err));
+      const message = err instanceof Error ? err.message : String(err);
+      if (id !== null) store.markSnapshotFailed(id, message);
+      else log(`publish failed before a snapshot was recorded: ${message}`);
       return 'failed';
     } finally {
       busy = false;
