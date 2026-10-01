@@ -19,6 +19,9 @@ export const ROUTER = {
       personal: '/activity/personal',
     },
   },
+  asp: {
+    base: '/asp',
+  },
 };
 
 const ROUTER_PATHS = Object.values(ROUTER).flatMap((_route) => {

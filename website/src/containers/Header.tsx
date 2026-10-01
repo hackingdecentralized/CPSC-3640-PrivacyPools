@@ -3,10 +3,11 @@
 import Link from 'next/link';
 import { styled } from '@mui/material/styles';
 import { CustomRpcButton, Logo, Menu, SignInButton } from '~/components';
+import { AssetToggle } from '~/components/AssetToggle';
 import { ChainSelect } from '~/components/ChainSelect';
 import { CourseBanner } from '~/components/CourseBanner';
 import { useAuthContext } from '~/hooks';
-import { zIndex } from '~/utils';
+import { ROUTER, zIndex } from '~/utils';
 
 export const Header = () => {
   const { hasWallet, hasSession } = useAuthContext();
@@ -22,9 +23,17 @@ export const Header = () => {
           <Link href='/'>
             <Logo />
           </Link>
+          {/* CPSC 3640: the Teaching ASP's deposits, roots and teacher controls */}
+          <NavLink href={ROUTER.asp.base} data-testid='asp-link'>
+            <span className='full'>Association Set</span>
+            <span className='short'>ASP</span>
+          </NavLink>
         </LeftSection>
         <Actions>
-          <ChainSelect />
+          <AssetToggle />
+          <ChainSelectSlot>
+            <ChainSelect />
+          </ChainSelectSlot>
 
           {/*
             Signed out, the custom RPC form gets its own button. It normally
@@ -90,3 +99,30 @@ const LeftSection = styled('div')({
   alignItems: 'center',
   gap: '2.4rem',
 });
+
+const NavLink = styled(Link)(({ theme }) => ({
+  color: theme.palette.text.primary,
+  fontSize: '1.4rem',
+  fontWeight: 600,
+  textDecoration: 'underline',
+  textUnderlineOffset: '0.4rem',
+  whiteSpace: 'nowrap',
+  '&:hover': {
+    color: theme.palette.text.disabled,
+  },
+  '.short': {
+    display: 'none',
+  },
+  [theme.breakpoints.down('sm')]: {
+    '.full': { display: 'none' },
+    '.short': { display: 'inline' },
+  },
+}));
+
+// One course chain, so the chain filter is noise on a phone-width header that also holds the asset switch.
+const ChainSelectSlot = styled('div')(({ theme }) => ({
+  display: 'flex',
+  [theme.breakpoints.down('sm')]: {
+    display: 'none',
+  },
+}));
