@@ -108,6 +108,9 @@
       "typescript": "5.6.2",
       "@babel/runtime@<7.26.10": ">=7.26.10",
       "@babel/helpers@<7.26.10": ">=7.26.10"
+    },
+    "patchedDependencies": {
+      "next@15.5.25": "patches/next@15.5.25.patch"
     }
   }
 }

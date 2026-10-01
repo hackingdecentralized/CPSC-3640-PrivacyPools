@@ -1,0 +1,42 @@
+diff --git a/dist/client/components/router-reducer/fetch-server-response.js b/dist/client/components/router-reducer/fetch-server-response.js
+index 1b5e66b4cc684002e1600235f9f81296b255a6a7..b1eaa98a2ccfc4f002155ee9c6be6f734839375f 100644
+--- a/dist/client/components/router-reducer/fetch-server-response.js
++++ b/dist/client/components/router-reducer/fetch-server-response.js
+@@ -36,8 +36,15 @@ const _setcachebustingsearchparam = require("./set-cache-busting-search-param");
+ const _routeparams = require("../../route-params");
+ const createFromReadableStream = _client.createFromReadableStream;
+ function doMpaNavigation(url) {
++    const target = (0, _routeparams.urlToUrlWithoutFlightMarker)(new URL(url, location.origin));
++    if (process.env.__NEXT_CONFIG_OUTPUT === 'export') {
++        // Patched (CPSC course site): in a static export the URL here can be the RSC payload file
++        // (".../index.txt" or ".../page.txt"), e.g. after a build-ID mismatch from a redeploy. A hard
++        // navigation must load the HTML page, not the payload.
++        target.pathname = target.pathname.replace(/\/index\.txt$/, '/').replace(/\.txt$/, '');
++    }
+     return {
+-        flightData: (0, _routeparams.urlToUrlWithoutFlightMarker)(new URL(url, location.origin)).toString(),
++        flightData: target.toString(),
+         canonicalUrl: undefined,
+         couldBeIntercepted: false,
+         prerendered: false,
+diff --git a/dist/esm/client/components/router-reducer/fetch-server-response.js b/dist/esm/client/components/router-reducer/fetch-server-response.js
+index 06c09762991d266a9d0932d3ec51e503f8c1da77..e8068171d85c3a9adb79f6f484eaa671a1d7946d 100644
+--- a/dist/esm/client/components/router-reducer/fetch-server-response.js
++++ b/dist/esm/client/components/router-reducer/fetch-server-response.js
+@@ -12,8 +12,15 @@ import { setCacheBustingSearchParam } from './set-cache-busting-search-param';
+ import { urlToUrlWithoutFlightMarker } from '../../route-params';
+ const createFromReadableStream = createFromReadableStreamBrowser;
+ function doMpaNavigation(url) {
++    const target = urlToUrlWithoutFlightMarker(new URL(url, location.origin));
++    if (process.env.__NEXT_CONFIG_OUTPUT === 'export') {
++        // Patched (CPSC course site): in a static export the URL here can be the RSC payload file
++        // (".../index.txt" or ".../page.txt"), e.g. after a build-ID mismatch from a redeploy. A hard
++        // navigation must load the HTML page, not the payload.
++        target.pathname = target.pathname.replace(/\/index\.txt$/, '/').replace(/\.txt$/, '');
++    }
+     return {
+-        flightData: urlToUrlWithoutFlightMarker(new URL(url, location.origin)).toString(),
++        flightData: target.toString(),
+         canonicalUrl: undefined,
+         couldBeIntercepted: false,
+         prerendered: false,
