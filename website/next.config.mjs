@@ -1,5 +1,23 @@
+// Static export (GitHub Pages) is opt-in: set NEXT_PUBLIC_BASE_PATH (e.g. /CPSC-3640-PrivatePools, the repo name)
+// or STATIC_EXPORT=1 at build time. Without either, this is the normal server build used by `pnpm dev`.
+const basePath = (process.env.NEXT_PUBLIC_BASE_PATH ?? '').replace(/\/+$/, '');
+const staticExport = basePath !== '' || process.env.STATIC_EXPORT === '1';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  ...(staticExport && {
+    output: 'export',
+    basePath,
+    assetPrefix: basePath,
+    // GitHub Pages serves /asp/ from asp/index.html.
+    trailingSlash: true,
+    // There is no image optimisation server in a static export.
+    images: { unoptimized: true },
+  }),
+  // Inlined for client code that builds public-file URLs by hand (src/utils/basePath.ts).
+  env: {
+    NEXT_PUBLIC_BASE_PATH: basePath,
+  },
   // Skip ESLint during builds (run in pre-commit hooks instead)
   // ESLint is also part of pnpm run build
   eslint: {
@@ -49,51 +67,53 @@ const nextConfig = {
 
     return config;
   },
-  // Headers configuration for Safe App compatibility
-  async headers() {
-    return [
-      {
-        // Apply to all routes
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN', // Allow framing from same origin and Safe domains
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' https://app.safe.global https://*.safe.global https://safe.global;",
-          },
-          {
-            key: 'Access-Control-Allow-Origin',
-            value: '*', // Allow requests from any origin for manifest.json
-          },
-          {
-            key: 'Access-Control-Allow-Methods',
-            value: 'GET, POST, PUT, DELETE, OPTIONS',
-          },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value: 'X-Requested-With, content-type, Authorization',
-          },
-        ],
-      },
-      {
-        // Specific headers for manifest.json
-        source: '/manifest.json',
-        headers: [
-          {
-            key: 'Access-Control-Allow-Origin',
-            value: '*',
-          },
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=3600', // Cache for 1 hour
-          },
-        ],
-      },
-    ];
-  },
+  // Headers configuration for Safe App compatibility. A static export cannot set headers, so it has none.
+  ...(!staticExport && { headers }),
 };
+
+async function headers() {
+  return [
+    {
+      // Apply to all routes
+      source: '/(.*)',
+      headers: [
+        {
+          key: 'X-Frame-Options',
+          value: 'SAMEORIGIN', // Allow framing from same origin and Safe domains
+        },
+        {
+          key: 'Content-Security-Policy',
+          value: "frame-ancestors 'self' https://app.safe.global https://*.safe.global https://safe.global;",
+        },
+        {
+          key: 'Access-Control-Allow-Origin',
+          value: '*', // Allow requests from any origin for manifest.json
+        },
+        {
+          key: 'Access-Control-Allow-Methods',
+          value: 'GET, POST, PUT, DELETE, OPTIONS',
+        },
+        {
+          key: 'Access-Control-Allow-Headers',
+          value: 'X-Requested-With, content-type, Authorization',
+        },
+      ],
+    },
+    {
+      // Specific headers for manifest.json
+      source: '/manifest.json',
+      headers: [
+        {
+          key: 'Access-Control-Allow-Origin',
+          value: '*',
+        },
+        {
+          key: 'Cache-Control',
+          value: 'public, max-age=3600', // Cache for 1 hour
+        },
+      ],
+    },
+  ];
+}
 
 export default nextConfig;

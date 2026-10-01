@@ -14,7 +14,12 @@ const title = 'Privacy Pools - Anonymous & Compliant Payments';
 const description =
   'Privacy Pools by 0xbow is a compliant way to anonymously transact on Ethereum. 0xbow blocks illicit actors to ensure pool integrity.';
 
+// Social-preview image URLs are absolute, so they need the public origin, e.g. https://<owner>.github.io (the
+// GitHub Pages workflow sets it). Without it Next falls back to http://localhost:3000.
+const siteOrigin = process.env.NEXT_PUBLIC_SITE_ORIGIN;
+
 export const metadata: Metadata = {
+  ...(siteOrigin && { metadataBase: new URL(siteOrigin) }),
   title,
   description,
 };

@@ -39,7 +39,9 @@ export const Footer = () => {
           <Fragment key={item.label}>
             {index > 0 && <VBar>|</VBar>}
             <LinkItem>
-              <Link href={item.href} target='_blank'>
+              {/* No prefetch: these open in a new tab, and the static export has no route payload for
+                  /whitepaper.pdf, so a prefetch of it is a 404. */}
+              <Link href={item.href} target='_blank' prefetch={false}>
                 {item.label === 'X' ? '𝕏' : item.label}
               </Link>
             </LinkItem>
