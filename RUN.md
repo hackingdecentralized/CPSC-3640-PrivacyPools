@@ -10,7 +10,7 @@ Needs: Docker Desktop, Foundry, Node 24.
 ```
 
 1. In MetaMask, add a network with RPC `http://127.0.0.1:8547` and chain ID `11155111`.
-2. Open **http://localhost:3100**, create an account, and deposit ETH. For BULLDOGS, switch to BULLDOGS and press **Claim** first.
+2. Open **http://localhost:3100**, create an account, and deposit ETH. For BULLDOGS, the wallet first needs tokens: call the token's public `claim()` (mints 10,000), e.g. on Etherscan → Write Contract.
 3. After about 10 s the deposit is approved. **http://localhost:3100/asp** shows this. Sign in there with the address you passed to `up` to approve or decline deposits.
 4. **Withdraw** to any address. The relayer pays the gas.
 
