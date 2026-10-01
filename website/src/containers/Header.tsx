@@ -2,11 +2,10 @@
 
 import Link from 'next/link';
 import { styled } from '@mui/material/styles';
-import { CustomRpcButton, Disclaimer, Logo, Menu, SignInButton } from '~/components';
+import { CustomRpcButton, Logo, Menu, SignInButton } from '~/components';
 import { ChainSelect } from '~/components/ChainSelect';
-import { MaintenanceBanner } from '~/components/MaintenanceBanner';
+import { CourseBanner } from '~/components/CourseBanner';
 import { useAuthContext } from '~/hooks';
-import { MigrationBanner } from '~/migration';
 import { zIndex } from '~/utils';
 
 export const Header = () => {
@@ -16,9 +15,7 @@ export const Header = () => {
 
   return (
     <HeaderWrapper>
-      <Disclaimer />
-      <MigrationBanner />
-      <MaintenanceBanner />
+      <CourseBanner />
 
       <StyledHeader>
         <LeftSection>
@@ -58,7 +55,7 @@ const HeaderWrapper = styled('div')(({ theme }) => {
       top: 0,
       left: 0,
       // solid background so scrolled content doesn't bleed through the
-      // semi-transparent migration banner on iOS Safari
+      // header on iOS Safari
       backgroundColor: theme.palette.background.default,
     },
   };
