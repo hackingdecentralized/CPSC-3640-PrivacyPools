@@ -29,14 +29,14 @@ export async function relayQuoteHandler(
   if (config === undefined)
     return next(QuoterError.assetNotSupported(`Asset ${asset} for chain ${chainId} is not supported`));
 
-  if (isNative(asset)) {
+  if (isNative(asset) || config.fee_mode === "flat") {
     extraGas = false;
   }
 
   let quote: QuoteFee;
   try {
     quote = await quoteService.quoteFeeBPSNative({
-      chainId, amountIn, assetAddress: asset, baseFeeBPS: config.fee_bps, extraGas: extraGas
+      chainId, amountIn, assetAddress: asset, baseFeeBPS: config.fee_bps, extraGas: extraGas, feeMode: config.fee_mode
     });
   } catch (e) {
     return next(e);

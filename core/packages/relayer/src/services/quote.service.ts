@@ -7,6 +7,7 @@ interface QuoteFeeBPSParams {
   amountIn: bigint,
   baseFeeBPS: bigint,
   extraGas: boolean;
+  feeMode?: "flat" | "market";
 };
 
 const NativeAddress = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
@@ -42,8 +43,13 @@ export class QuoteService {
   }
 
   async quoteFeeBPSNative(quoteParams: QuoteFeeBPSParams): Promise<QuoteFee> {
-    const { chainId, assetAddress, amountIn, baseFeeBPS, extraGas } = quoteParams;
+    const { chainId, assetAddress, amountIn, baseFeeBPS, extraGas, feeMode } = quoteParams;
     const gasPrice = await web3Provider.getGasPrice(chainId);
+
+    // Flat fee: exactly the configured base fee, no gas component and no Uniswap price lookup.
+    if (feeMode === "flat") {
+      return { feeBPS: baseFeeBPS, gasPrice, relayTxCost: this.relayTxCost, path: [] };
+    }
 
     const EXTRA_GAS_AMOUNT = this.extraGasTxCost + this.extraGasFundAmount;
     const extraGasUnits = extraGas ? EXTRA_GAS_AMOUNT : 0n;

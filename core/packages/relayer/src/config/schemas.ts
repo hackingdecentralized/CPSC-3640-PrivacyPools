@@ -39,6 +39,8 @@ export const zAssetConfig = z.object({
   asset_name: z.string(),
   fee_bps: zFeeBps,
   min_withdraw_amount: zWithdrawAmount,
+  // "flat": quote exactly fee_bps (no gas component, no Uniswap price lookup). "market": upstream behaviour.
+  fee_mode: z.enum(["flat", "market"]).default("market"),
 });
 
 // Native currency configuration schema

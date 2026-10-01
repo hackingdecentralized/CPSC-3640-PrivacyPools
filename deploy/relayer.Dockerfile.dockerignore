@@ -1,0 +1,12 @@
+# BuildKit uses this file for deploy/relayer.Dockerfile (context core/packages) instead of a root .dockerignore.
+# Send only what the image needs.
+**
+!relayer/package.json
+!relayer/tsconfig.build.json
+!relayer/src/**
+!circuits/trusted-setup/final-keys/commitment.zkey
+!circuits/trusted-setup/final-keys/commitment.vkey
+!circuits/trusted-setup/final-keys/withdraw.zkey
+!circuits/trusted-setup/final-keys/withdraw.vkey
+!circuits/build/commitment/commitment_js/commitment.wasm
+!circuits/build/withdraw/withdraw_js/withdraw.wasm

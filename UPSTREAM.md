@@ -27,3 +27,7 @@ Every change to a file under `core/` or `website/`. New files are marked *(new)*
 | `core/packages/contracts/script/CourseSmoke.s.sol` *(new)* | Smoke deposits | Live post-deploy check |
 | `core/packages/contracts/test/course/CourseDeployFork.t.sol` *(new)* | Fork rehearsal tests | Verify deployment before broadcasting |
 | `core/packages/contracts/deployments/.gitkeep` *(new)* | Output dir for forge deploy JSON | `vm.writeJson` target |
+| `core/packages/relayer/src/config/schemas.ts` | `zAssetConfig` gains `fee_mode: "flat" \| "market"`, default `"market"` (upstream behaviour) | The course relayer charges a flat fee; BULLDOGS has no Uniswap market to price gas in |
+| `core/packages/relayer/src/services/quote.service.ts` | `quoteFeeBPSNative` takes `feeMode`; `"flat"` returns `fee_bps` right after reading the gas price: no gas component, no Uniswap call | Same |
+| `core/packages/relayer/src/handlers/relayer/quote.ts` | Passes the asset's `fee_mode`; forces `extraGas = false` for flat assets | `extraGas` swaps the fee through Uniswap |
+| `core/packages/relayer/src/services/privacyPoolRelayer.service.ts` | Passes `fee_mode` to the fee check for requests without a fee commitment | Same fee rule on `/relayer/request` as on `/relayer/quote` |

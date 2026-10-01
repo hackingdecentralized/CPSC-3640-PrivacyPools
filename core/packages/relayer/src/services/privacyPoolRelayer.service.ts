@@ -317,7 +317,8 @@ export class PrivacyPoolRelayer {
         amountIn: proofSignals.withdrawnValue,
         assetAddress,
         baseFeeBPS: assetConfig.fee_bps,
-        extraGas
+        extraGas,
+        feeMode: assetConfig.fee_mode
       });
 
       if (relayFeeBPS < currentFeeBPS.feeBPS) {
