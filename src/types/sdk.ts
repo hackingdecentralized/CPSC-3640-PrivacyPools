@@ -1,0 +1,15 @@
+export type {
+  AccountCommitment,
+  AccountService,
+  Commitment,
+  CommitmentProof,
+  Hash,
+  MasterKeys,
+  PoolAccount as SDKPoolAccount,
+  PrivacyPoolAccount,
+  RagequitEvent,
+  Secret,
+  Withdrawal,
+  WithdrawalProof,
+  WithdrawalProofInput,
+} from '@0xbow/privacy-pools-core-sdk';
