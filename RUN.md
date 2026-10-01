@@ -36,15 +36,20 @@ cp .env.example .env && chmod 600 .env    # fill it in, every line is commented
 
 `ASP_HOST` and `RELAYER_HOST` can be `asp.<server-ip>.sslip.io` and `relayer.<server-ip>.sslip.io` if you have no domain. Full guide: `deploy/README.md`.
 
-**3. Website.** On Vercel, import the repo with **Root Directory** set to `website`, and add these environment variables:
+**3. Website (GitHub Pages).** In the GitHub repo:
 
-| Variable | Value |
-|---|---|
-| `NEXT_PUBLIC_IS_TESTNET` | `true` |
-| `NEXT_PUBLIC_SEPOLIA_RPC_URL` | your Alchemy or Infura Sepolia URL |
-| `NEXT_PUBLIC_ASP_ENDPOINT_TEST` | `https://<ASP_HOST>` |
-| `NEXT_PUBLIC_RELAYER_URL` | `https://<RELAYER_HOST>` |
+1. **Settings → Pages**: set **Source** to **GitHub Actions**.
+2. **Settings → Secrets and variables → Actions → Variables**: add
 
-Then set `CORS_ORIGINS` in `deploy/.env` to the Vercel URL and run `./up.sh` again.
+   | Variable | Value |
+   |---|---|
+   | `NEXT_PUBLIC_SEPOLIA_RPC_URL` | your Alchemy or Infura Sepolia URL |
+   | `NEXT_PUBLIC_ASP_ENDPOINT_TEST` | `https://<ASP_HOST>` |
+   | `NEXT_PUBLIC_RELAYER_URL` | `https://<RELAYER_HOST>` |
+   | `NEXT_PUBLIC_PROJECT_ID` | optional WalletConnect project ID |
 
-**4. Class.** Give students some Sepolia ETH and the Vercel link. They use MetaMask on Sepolia.
+3. Push to `main` (or run the **Deploy website to GitHub Pages** workflow by hand). The site appears at **https://hackingdecentralized.github.io/CPSC-3640-PrivatePools/**.
+
+These values are built into the public site, so anyone can read the RPC URL: use a key restricted to that domain in Alchemy or Infura. Then set `CORS_ORIGINS=https://hackingdecentralized.github.io` in `deploy/.env` and run `./up.sh` again.
+
+**4. Class.** Give students some Sepolia ETH and the site link. They use MetaMask on Sepolia.
