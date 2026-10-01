@@ -45,10 +45,11 @@ const allChains = whitelistedChains.includes(mainnet)
 
 export const transports = allChains.reduce(
   (acc, chain) => {
-    // Use mainnet data if available, otherwise use Alchemy
+    // Use mainnet data if available, otherwise use Alchemy (only with a key; the course build
+    // has none, so ENS lookups go to viem's public mainnet RPC instead of a keyless Alchemy URL)
     const rpcUrl =
       chainData[chain.id]?.rpcUrl ||
-      (chain.id === 1
+      (chain.id === 1 && getConfig().env.ALCHEMY_KEY
         ? `https://eth-mainnet.g.alchemy.com/v2/${getConfig().env.ALCHEMY_KEY}`
         : chain.rpcUrls.default.http[0]);
     acc[chain.id] = http(rpcUrl);

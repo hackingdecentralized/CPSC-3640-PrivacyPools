@@ -14,6 +14,9 @@ const env: Env = {
   // HYPERSYNC_KEY removed from client-side for security
   SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN as string,
   SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN as string,
+  // Course deployment: one Sepolia (or Sepolia-fork) RPC for both wagmi and the SDK scan, and the class relayer.
+  SEPOLIA_RPC_URL: process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL ?? '',
+  RELAYER_URL: process.env.NEXT_PUBLIC_RELAYER_URL ?? '',
 
   // New migration config
   IS_MIGRATION_ACTIVE: process.env.NEXT_PUBLIC_IS_MIGRATION_ACTIVE === 'true',
