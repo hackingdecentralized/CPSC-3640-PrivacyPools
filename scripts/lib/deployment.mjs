@@ -9,7 +9,8 @@ const POOL_PREFIXES = { PrivacyPoolSimple_: 'simple', PrivacyPoolComplex_: 'comp
  * read SCOPE() on-chain instead.
  */
 export function parseForgeDeployment(rawText) {
-  const { contracts } = JSON.parse(rawText);
+  const { chainId, contracts } = JSON.parse(rawText);
+  if (!Number.isInteger(chainId)) throw new Error('forge deployment has no numeric chainId');
   const byName = new Map(contracts.map((c) => [c.name, c]));
   const missing = REQUIRED.filter((name) => !byName.has(name));
   if (missing.length > 0) throw new Error(`forge deployment is missing ${missing.join(', ')}`);
@@ -32,6 +33,7 @@ export function parseForgeDeployment(rawText) {
 
   const proxy = byName.get('Entrypoint_Proxy');
   return {
+    chainId,
     withdrawalVerifier: getAddress(byName.get('WithdrawalVerifier').address),
     ragequitVerifier: getAddress(byName.get('CommitmentVerifier').address),
     entrypointImplementation: getAddress(byName.get('Entrypoint_Implementation').address),

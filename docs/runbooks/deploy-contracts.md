@@ -50,7 +50,22 @@ forge script script/CourseSmoke.s.sol:CourseSmoke --account deployer --sender $D
   --rpc-url $ETHEREUM_SEPOLIA_RPC --broadcast --slow -vv
 ```
 
-## 4. Export + verify (Claude can run this; no keys needed)
+## If a broadcast stops partway
+
+If step 2 or 3 is interrupted (dropped connection, RPC error, laptop sleep, some transactions not yet mined), do not start over:
+
+1. Re-run the **identical** command from that step with `--resume` appended, e.g. for step 2:
+   ```bash
+   forge script script/CourseDeploy.s.sol:CourseSepolia --account deployer --sender $DEPLOYER_ADDRESS \
+     --rpc-url $ETHEREUM_SEPOLIA_RPC --broadcast --verify --slow -vv --resume
+   ```
+   Same for step 3 with the `CourseSmoke.s.sol:CourseSmoke` command. Forge picks up where it stopped using the saved state in `broadcast/` and `cache/`.
+2. Do **not** run the anvil rehearsal (`rehearse-anvil.sh`) in between. It uses the same chain id (11155111) and the same forge `cache/` as the real broadcast, so leave it alone until the broadcast is finished.
+3. Do **not** import a new deployer. A new deployer is only for an intentional fresh instance (see "Redeploying"); a resume must use the same account.
+
+If Etherscan verification (`--verify`) fails after the contracts are deployed, re-run the step 2 command with `--resume --verify` (the step 2 command already has `--verify`, so this is the same command with `--resume` appended), or verify individual contracts with `forge verify-contract`. The deployment itself is already on-chain; verification can be retried at any time.
+
+## 4. Export + verify (Claude can run this; no private keys needed — uses your RPC URL)
 
 ```bash
 cd "$(git rev-parse --show-toplevel)"
@@ -66,7 +81,9 @@ node export-deployment.mjs --rpc $ETHEREUM_SEPOLIA_RPC \
   --owner $OWNER_ADDRESS --postman $POSTMAN_ADDRESS --out ../deployments/sepolia.json
 node verify-deployment.mjs --file ../deployments/sepolia.json --rpc $ETHEREUM_SEPOLIA_RPC
 ```
-Expected final line: `ALL CHECKS PASSED`.
+Expected final line: `ALL CHECKS PASSED`. The output includes `spec:` lines: independent checks against the course spec (chain id 11155111, the BULLDOGS token address, minimum deposits 0.001 ETH / 10 BULLDOGS, 0% vetting fee, 1% max relay fee, exactly the ETH and BULLDOGS pools).
+
+The pool and entrypoint `deploymentBlock` values in the export are the block at which forge simulated the script, which is a lower bound on the real deployment block. They are meant only as the start block for scanning logs, not as the exact block of deployment.
 
 Run this soon after step 3: the balance checks read pool state at the smoke-deposit blocks, which non-archive RPC nodes prune after a while.
 

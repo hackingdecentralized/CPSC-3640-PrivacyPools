@@ -23,6 +23,7 @@ const SMOKE_RUN = {
 describe('parseForgeDeployment', () => {
   it('extracts addresses, blocks and pools with checksummed addresses', () => {
     const f = parseForgeDeployment(FORGE_RAW);
+    expect(f.chainId).toBe(11155111);
     expect(f.withdrawalVerifier).toBe('0x1000000000000000000000000000000000000001');
     expect(f.ragequitVerifier).toBe('0x1000000000000000000000000000000000000002');
     expect(f.entrypointImplementation).toBe('0x1000000000000000000000000000000000000003');
@@ -37,6 +38,11 @@ describe('parseForgeDeployment', () => {
   it('does not expose scope from forge JSON (precision loss)', () => {
     const f = parseForgeDeployment(FORGE_RAW);
     expect(f.pools[0]).not.toHaveProperty('scope');
+  });
+
+  it('throws when chainId is missing or not a number', () => {
+    expect(() => parseForgeDeployment('{"contracts":[]}')).toThrow(/chainId/);
+    expect(() => parseForgeDeployment('{"chainId":"11155111","contracts":[]}')).toThrow(/chainId/);
   });
 
   it('throws when a required contract is missing', () => {

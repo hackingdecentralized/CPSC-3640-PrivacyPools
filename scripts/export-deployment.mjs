@@ -6,7 +6,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
-import { createPublicClient, getAddress, http } from 'viem';
+import { createPublicClient, getAddress, http, isAddressEqual } from 'viem';
 import { NATIVE_ASSET, ROLES, entrypointAbi, erc20Abi, poolAbi } from './lib/abis.mjs';
 import { buildDeployment, findSmokeTxs, parseForgeDeployment } from './lib/deployment.mjs';
 
@@ -29,6 +29,9 @@ for (const k of ['rpc', 'forge-deployment', 'smoke-run', 'owner', 'postman', 'ou
 const client = createPublicClient({ transport: http(args.rpc) });
 const chainId = await client.getChainId();
 const forge = parseForgeDeployment(readFileSync(args['forge-deployment'], 'utf8'));
+if (forge.chainId !== chainId) {
+  throw new Error(`forge deployment is for chain ${forge.chainId} but --rpc is chain ${chainId}`);
+}
 const smoke = findSmokeTxs(JSON.parse(readFileSync(args['smoke-run'], 'utf8')));
 const upstream = JSON.parse(readFileSync(resolve(ROOT, 'upstream.json'), 'utf8'));
 
@@ -46,13 +49,16 @@ const pools = {};
 let token;
 for (const p of forge.pools) {
   const scope = await client.readContract({ address: p.address, abi: poolAbi, functionName: 'SCOPE' });
-  const [, minimumDepositAmount, vettingFeeBPS, maxRelayFeeBPS] = await client.readContract({
+  const [registeredPool, minimumDepositAmount, vettingFeeBPS, maxRelayFeeBPS] = await client.readContract({
     ...ep,
     functionName: 'assetConfig',
     args: [p.asset],
   });
+  if (!isAddressEqual(registeredPool, p.address)) {
+    throw new Error(`entrypoint assetConfig(${p.asset}).pool is ${registeredPool} but forge deployment lists ${p.address}`);
+  }
   let decimals = 18;
-  if (p.asset !== NATIVE_ASSET) {
+  if (!isAddressEqual(p.asset, NATIVE_ASSET)) {
     const t = { address: p.asset, abi: erc20Abi };
     const [name, symbol, dec] = await Promise.all([
       client.readContract({ ...t, functionName: 'name' }),
