@@ -1,0 +1,54 @@
+{
+  "chainId": 11155111,
+  "upstream": {
+    "core": "d494b63e79f33bb2b0c8ece6cdacdca465c3b884",
+    "website": "7df411128f7a18a61a77f7a0371bf0b857969e2a"
+  },
+  "roles": {
+    "owner": "0x1647DfA3B26Cd80649fa248efb483b3029c06379",
+    "postman": "0xf656294850F4e78de26E2C81288d4ffc36A0d3B7"
+  },
+  "contracts": {
+    "withdrawalVerifier": "0x98e0Cc3d4807BCa3573C22439a8B443CD21CE875",
+    "ragequitVerifier": "0x13033BDb60724606A266Cb6Cf109a6B3B40EF19a",
+    "entrypoint": {
+      "proxy": "0x82481734d52D1cABAbc1A3aA7F15BeBFFf72C94C",
+      "implementation": "0x770c1DaEacf5E0FcaDc3aa92Af8a59A6F911a5c7",
+      "deploymentBlock": 11819302
+    }
+  },
+  "pools": [
+    {
+      "symbol": "ETH",
+      "asset": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+      "address": "0x6571E683A0c66727b928Bad12109a7b5eDD991CB",
+      "scope": "6993455886680954896532319639686868005655642773679214380766768396215583927587",
+      "deploymentBlock": 11819302,
+      "decimals": 18,
+      "minimumDepositAmount": "1000000000000000",
+      "vettingFeeBPS": 0,
+      "maxRelayFeeBPS": 100
+    },
+    {
+      "symbol": "BULLDOGS",
+      "asset": "0xBc2BEfb9a8aA70AfA23F7451A0794466976B6974",
+      "address": "0xc3b821594D65A09B6E4E2d6A325cDa489E0Ee9F5",
+      "scope": "2954052414988577421150466732027910325074686696605601188033229187943781222557",
+      "deploymentBlock": 11819302,
+      "decimals": 18,
+      "minimumDepositAmount": "10000000000000000000",
+      "vettingFeeBPS": 0,
+      "maxRelayFeeBPS": 100
+    }
+  ],
+  "token": {
+    "address": "0xBc2BEfb9a8aA70AfA23F7451A0794466976B6974",
+    "name": "Bulldogs",
+    "symbol": "BULLDOGS",
+    "decimals": 18
+  },
+  "smokeTest": {
+    "ethDepositTx": "0xd64406b3f7f34bfef2b90a3faabda5d2b1c8b0025cb5ae232f529822c8e019a7",
+    "tokenDepositTx": "0xbf7a8c3b61d3947f775c49d922aa73b8c635f3d73feb647a69fd285a980d42aa"
+  }
+}

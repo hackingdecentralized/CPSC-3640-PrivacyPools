@@ -1,24 +1,24 @@
 {
-  "network": "anvil-fork",
+  "network": "sepolia",
   "chainId": 11155111,
-  "entrypoint": "0x9B9EbB32D06939F9c88cb3eD9ddbC937734aC730",
-  "deploymentBlock": 11818711,
+  "entrypoint": "0x82481734d52D1cABAbc1A3aA7F15BeBFFf72C94C",
+  "deploymentBlock": 11819302,
   "pools": [
     {
       "symbol": "ETH",
-      "address": "0x5de08D48823653969B36C68D7999F0f79b0a04E3",
+      "address": "0x6571E683A0c66727b928Bad12109a7b5eDD991CB",
       "asset": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-      "scope": "7521248044136569006397512305945704500118591041134356013211621951945763308208",
-      "deploymentBlock": 11818711,
+      "scope": "6993455886680954896532319639686868005655642773679214380766768396215583927587",
+      "deploymentBlock": 11819302,
       "decimals": 18,
       "minimumDepositAmount": "1000000000000000"
     },
     {
       "symbol": "BULLDOGS",
-      "address": "0x4dc92E6a8588602634761e3E6Cb4c4A5129E2A18",
+      "address": "0xc3b821594D65A09B6E4E2d6A325cDa489E0Ee9F5",
       "asset": "0xBc2BEfb9a8aA70AfA23F7451A0794466976B6974",
-      "scope": "11732348230899906912829412229042552800731711051750287391647573461104272111661",
-      "deploymentBlock": 11818711,
+      "scope": "2954052414988577421150466732027910325074686696605601188033229187943781222557",
+      "deploymentBlock": 11819302,
       "decimals": 18,
       "minimumDepositAmount": "10000000000000000000"
     }
