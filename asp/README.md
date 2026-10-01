@@ -7,8 +7,6 @@ A small Association Set Provider for the CPSC 3640 Privacy Pool demo. It:
 - publishes the Association Set root to the Entrypoint;
 - serves the API the upstream website expects, plus teaching and admin endpoints.
 
-Design: `docs/superpowers/specs/2026-09-30-course-privacy-pool-design.md` §5.2.
-
 ## Configuration (env)
 
 | Variable | Required | Default | Meaning |

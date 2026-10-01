@@ -21,5 +21,5 @@ docs/          design spec, plans, runbooks
 
 ## Docs
 
-- Design: [docs/superpowers/specs/2026-09-30-course-privacy-pool-design.md](docs/superpowers/specs/2026-09-30-course-privacy-pool-design.md)
+- How to run: [RUN.md](RUN.md)
 - Deploying contracts: [docs/runbooks/deploy-contracts.md](docs/runbooks/deploy-contracts.md)
