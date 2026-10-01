@@ -18,13 +18,7 @@ Stop with `./scripts/local-demo.sh down`.
 
 ## B. Run it for class on Sepolia
 
-**1. Deploy the contracts (once).** Follow `docs/runbooks/deploy-contracts.md` sections 0, 2 and 3 to create three wallets, fund them, fill one `.env`, and run two `forge` commands. Then run section 4 (or ask Claude) to create `deployments/sepolia.json`, and:
-
-```bash
-node scripts/sync-website-config.mjs --from deployments/sepolia.json && git commit -am "Use the Sepolia deployment"
-```
-
-Push the repo to GitHub.
+**1. Deploy the contracts (once).** Follow [DEPLOY.md](DEPLOY.md): three wallets, one `.env`, two `forge` commands, then export, sync the website and push.
 
 **2. Server.** Use any small Ubuntu VPS:
 

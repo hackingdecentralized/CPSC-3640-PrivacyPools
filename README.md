@@ -22,4 +22,4 @@ docs/          design spec, plans, runbooks
 ## Docs
 
 - How to run: [RUN.md](RUN.md)
-- Deploying contracts: [docs/runbooks/deploy-contracts.md](docs/runbooks/deploy-contracts.md)
+- Deploying contracts: [DEPLOY.md](DEPLOY.md)
