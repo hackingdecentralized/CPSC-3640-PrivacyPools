@@ -9,3 +9,4 @@ core/packages/contracts/broadcast-anvil/
 # forge's deployments/<chainId>.json output inside the vendored tree; the record lives in deployments/raw/<net>/
 core/packages/contracts/deployments/*.json
 .claude/worktrees/
+.local-demo/
