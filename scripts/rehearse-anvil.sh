@@ -73,6 +73,11 @@ if [[ "$ready" != 1 ]]; then
   echo "error: anvil did not become ready on $RPC within 30s" >&2
   exit 1
 fi
+# On real Sepolia every anvil dev account is EIP-7702-delegated (most to an ETH sweeper), so on the fork any call that
+# sends one ETH (even the relayer's zero-value fee payment) drains it. Strip the delegations: plain EOAs, fork only.
+for acct in $(cast rpc eth_accounts --rpc-url "$RPC" | tr -d '[]"' | tr ',' ' '); do
+  cast rpc anvil_setCode "$acct" 0x --rpc-url "$RPC" >/dev/null
+done
 cast rpc anvil_setBalance "$DEPLOYER" 0x56BC75E2D63100000 --rpc-url "$RPC" >/dev/null
 cast rpc anvil_impersonateAccount "$DEPLOYER" --rpc-url "$RPC" >/dev/null
 
