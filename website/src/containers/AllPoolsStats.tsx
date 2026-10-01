@@ -28,6 +28,10 @@ import type { PoolResponse } from '~/types';
 import { aspClient, fetchFxnPrice } from '~/utils';
 import type { PoolStats } from '~/utils/aspClient';
 
+/** CPSC 3640: e.g. "0.002 ETH" or "10 BULLDOGS" (up to 6 decimals). */
+const formatPoolAmount = (amount: bigint, decimals: number, symbol: string) =>
+  `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 6 }).format(Number(formatUnits(amount, decimals)))} ${symbol}`;
+
 export interface PoolCardData {
   poolName: string;
   icon?: string;
@@ -214,15 +218,8 @@ const PoolCard = ({
 }) => {
   const router = useRouter();
 
-  // Use totalFundsUSD from API (totalInPoolValueUsd)
-  const totalFundsUSD = pool.totalFundsUSD ?? 0;
-
-  const totalFundsDisplay = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(totalFundsUSD);
+  // CPSC 3640: test tokens have no USD price, so show the amount of the pool's own asset.
+  const totalFundsDisplay = formatPoolAmount(pool.totalFunds, pool.decimals, pool.asset);
 
   const hasGrowth = pool.growthPercentage !== undefined && pool.growthPercentage !== 0;
   const isPositiveGrowth = (pool.growthPercentage || 0) > 0;
@@ -353,13 +350,8 @@ const FundsOnlyCard = ({
   const router = useRouter();
   const hasIncentives = INCENTIVIZED_ASSETS.includes(pool.asset);
 
-  const totalFundsUSD = pool.totalFundsUSD ?? 0;
-  const totalFundsDisplay = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(totalFundsUSD);
+  // CPSC 3640: test tokens have no USD price, so show the amount of the pool's own asset.
+  const totalFundsDisplay = formatPoolAmount(pool.totalFunds, pool.decimals, pool.asset);
 
   const handleClick = () => {
     router.push(`/pools/${pool.chainId}/${pool.asset.toLowerCase()}`);
