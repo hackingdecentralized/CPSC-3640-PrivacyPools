@@ -1,0 +1,20 @@
+# Cloudflare Tunnel instead of Caddy: Cloudflare terminates HTTPS and the server opens no inbound ports.
+# up.sh adds this file automatically when CLOUDFLARE_TUNNEL_TOKEN is set in deploy/.env.
+#
+# In the Cloudflare dashboard (Zero Trust -> Networks -> Tunnels -> your tunnel -> Public hostnames):
+#   <ASP_HOST>      -> Service: HTTP  asp:8080
+#   <RELAYER_HOST>  -> Service: HTTP  relayer:3000
+services:
+  caddy:
+    # Not started with the tunnel (Caddy could not get certificates behind it anyway).
+    profiles: ["caddy"]
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN in deploy/.env}
+    depends_on:
+      - asp
+      - relayer
+    restart: unless-stopped

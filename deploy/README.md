@@ -161,3 +161,24 @@ lsof -ti tcp:8547 | xargs kill
 ```
 
 This was run on Docker Desktop (macOS), where `host.docker.internal` reaches anvil on the host's 127.0.0.1. On Linux, the containers come in through the Docker bridge, so anvil must listen on `0.0.0.0`. `rehearse-anvil.sh` binds 127.0.0.1 only, so add `--host 0.0.0.0` to its `anvil` command for such a run.
+
+## Using a Cloudflare Tunnel instead of Caddy
+
+Use this if the server should open no ports, or if it sits behind NAT. Cloudflare provides HTTPS.
+
+1. In the Cloudflare dashboard, go to **Zero Trust → Networks → Tunnels → Create a tunnel** (choose Cloudflared) and copy its **token**.
+2. On that tunnel, add two **Public hostnames**:
+   - `asp.<your-domain>` → Service **HTTP** `asp:8080`
+   - `relayer.<your-domain>` → Service **HTTP** `relayer:3000`
+3. In `deploy/.env`, set:
+   - `CLOUDFLARE_TUNNEL_TOKEN=<token>`
+   - `ASP_HOST` and `RELAYER_HOST` to those two hostnames
+   - `CORS_ORIGINS=https://hackingdecentralized.github.io`
+4. Run `./up.sh`. It starts `cloudflared` instead of Caddy, so nothing listens on ports 80 or 443.
+
+Cloudflare settings that break the site:
+
+- **Bot Fight Mode / Under Attack mode / JS challenges.** These answer the website's API calls with a challenge page, which shows up as CORS errors in the browser. Keep them off for these two hostnames, or add a WAF skip rule.
+- **Caching.** Don't add a "Cache Everything" rule. The ASP's JSON must always be fresh; Cloudflare doesn't cache it by default.
+
+Check from anywhere: `curl https://asp.<your-domain>/health` and `curl https://relayer.<your-domain>/ping`.

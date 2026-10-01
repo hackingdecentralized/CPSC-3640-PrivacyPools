@@ -28,7 +28,7 @@ docker compose version >/dev/null 2>&1 || fail "docker compose is not available;
 # here: deploy/.env is the only source.
 STACK_VARS=(DEPLOYMENT RPC_URL ASP_HOST RELAYER_HOST POSTMAN_PRIVATE_KEY ADMIN_ADDRESSES ADMIN_TOKEN_SECRET CORS_ORIGINS
   AUTO_APPROVE_DELAY_SEC PUBLISH_INTERVAL_SEC POLL_INTERVAL_MS CONFIRMATIONS LOG_CHUNK_SIZE RELAYER_PRIVATE_KEY RELAYER_FEE_BPS
-  POSTMAN_UNLOCKED_ADDRESS)
+  POSTMAN_UNLOCKED_ADDRESS CLOUDFLARE_TUNNEL_TOKEN)
 unset "${STACK_VARS[@]}"
 
 # Value of KEY in .env: the last KEY=value line, without surrounding quotes.
@@ -62,13 +62,21 @@ DEPLOYMENT_FILE="$ROOT/deployments/${DEPLOYMENT:-sepolia}.json"
 CHAIN_ID="$(sed -n 's/^  "chainId": *\([0-9][0-9]*\).*/\1/p' "$DEPLOYMENT_FILE" | head -n 1)"
 
 cd "$DEPLOY_DIR"
+# With a Cloudflare Tunnel token, cloudflared replaces Caddy (see docker-compose.cloudflare.yml).
+if [[ -n "$(env_value CLOUDFLARE_TUNNEL_TOKEN)" ]]; then
+  export COMPOSE_FILE="docker-compose.yml:docker-compose.cloudflare.yml"
+  FRONT=cloudflared
+  echo "up.sh: using the Cloudflare Tunnel instead of Caddy"
+else
+  FRONT=caddy
+fi
 # Without this, the default provenance attestation (it carries a build timestamp) gives every rebuild a new image
 # ID on the containerd image store, so each run would needlessly recreate the ASP and relayer.
 export BUILDX_NO_DEFAULT_ATTESTATIONS=1
 echo "up.sh: building and starting the stack (deployment $(basename "$DEPLOYMENT_FILE"))..."
 if ! docker compose up -d --build --remove-orphans --wait --wait-timeout 300; then
   docker compose ps
-  fail "the stack did not become healthy; inspect it with: cd deploy && docker compose logs --tail 100 asp relayer caddy"
+  fail "the stack did not become healthy; inspect it with: cd deploy && docker compose logs --tail 100 asp relayer $FRONT"
 fi
 docker compose ps
 
@@ -76,8 +84,9 @@ ASP_HOST="$(env_value ASP_HOST)"
 RELAYER_HOST="$(env_value RELAYER_HOST)"
 cat <<EOF
 
-The stack is up. Caddy may need a minute to obtain the certificates on the first start. Check from anywhere:
+The stack is up. On the first start, Caddy may need a minute to obtain certificates (with the Cloudflare Tunnel,
+check that its public hostnames point at asp:8080 and relayer:3000). Check from anywhere:
   curl -s https://$ASP_HOST/health
   curl -s "https://$RELAYER_HOST/relayer/details?chainId=${CHAIN_ID:-11155111}&assetAddress=$NATIVE_ASSET"
-Logs: cd deploy && docker compose logs -f --tail 100 asp relayer caddy
+Logs: cd deploy && ${COMPOSE_FILE:+COMPOSE_FILE=$COMPOSE_FILE }docker compose logs -f --tail 100 asp relayer $FRONT
 EOF
