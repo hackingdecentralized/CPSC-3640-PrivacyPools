@@ -1,7 +1,7 @@
 import { app } from "./app.js";
 import { db } from "./providers/db.provider.js";
 
-const port = Number(process.env.PORT ?? 3000);
+const port = Number(process.env.PORT || 3000);
 
 async function main() {
   await db.init();
