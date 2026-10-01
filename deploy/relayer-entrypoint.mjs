@@ -8,7 +8,8 @@
 //   DEPLOYMENT_FILE      deployments/<net>.json         (default /config/deployment.json)
 //   RPC_URL              chain RPC                       (required)
 //   RELAYER_PRIVATE_KEY  signer + fee receiver key       (required)
-//   RELAYER_FEE_BPS      flat relay fee, both assets     (default 0)
+//   RELAYER_FEE_BPS      flat relay fee, both assets     (default 10 = 0.1%; the unmodified website refuses a
+//                        0-bps quote, and the Entrypoint caps it at each pool's maxRelayFeeBPS, 100 here)
 //   RELAYER_DB_PATH      SQLite file                     (default /data/relayer.sqlite)
 import fs from "node:fs";
 import path from "node:path";
@@ -33,7 +34,7 @@ function required(name) {
 const deploymentFile = process.env.DEPLOYMENT_FILE || "/config/deployment.json";
 const rpcUrl = required("RPC_URL");
 const privateKey = required("RELAYER_PRIVATE_KEY");
-const feeBpsRaw = process.env.RELAYER_FEE_BPS || "0";
+const feeBpsRaw = process.env.RELAYER_FEE_BPS || "10";
 const dbPath = process.env.RELAYER_DB_PATH || "/data/relayer.sqlite";
 
 if (!/^0x[0-9a-fA-F]{64}$/.test(privateKey)) fail("RELAYER_PRIVATE_KEY must be 0x followed by 64 hex characters");
