@@ -1,0 +1,16 @@
+{
+  "name": "@course/scripts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "export": "node export-deployment.mjs",
+    "verify": "node verify-deployment.mjs"
+  },
+  "dependencies": {
+    "viem": "2.37.5"
+  },
+  "devDependencies": {
+    "vitest": "3.0.5"
+  }
+}
