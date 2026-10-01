@@ -28,4 +28,5 @@ export const erc20Abi = parseAbi([
   'function symbol() view returns (string)',
   'function decimals() view returns (uint8)',
   'function balanceOf(address owner) view returns (uint256)',
+  'event Transfer(address indexed from, address indexed to, uint256 value)',
 ]);

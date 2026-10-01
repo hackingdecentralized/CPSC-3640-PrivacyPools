@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 // On-chain smoke verification of a deployments/<net>.json file. Exit code 1 on any failure.
 // Usage: node verify-deployment.mjs --file <deployment.json> --rpc <url>
+// Note: the balance-delta checks read pool balances at the smoke-deposit blocks (N-1 and N), so the RPC must serve
+// state for those blocks: any node right after deploy, an archive node later.
 import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
-import { createPublicClient, decodeEventLog, http, isAddressEqual } from 'viem';
+import { createPublicClient, http, isAddressEqual, parseEventLogs } from 'viem';
 import { NATIVE_ASSET, ROLES, entrypointAbi, erc20Abi, poolAbi } from './lib/abis.mjs';
 
 const { values: args } = parseArgs({ options: { file: { type: 'string' }, rpc: { type: 'string' } } });
@@ -47,26 +49,41 @@ for (const p of d.pools) {
   const tx = p.asset === NATIVE_ASSET ? d.smokeTest.ethDepositTx : d.smokeTest.tokenDepositTx;
   const receipt = await client.getTransactionReceipt({ hash: tx });
   check(`${p.symbol}: smoke deposit tx succeeded`, receipt.status === 'success', tx);
-  const deposited = receipt.logs
-    .filter((l) => same(l.address, p.address))
-    .map((l) => {
-      try {
-        return decodeEventLog({ abi: poolAbi, data: l.data, topics: l.topics });
-      } catch {
-        return null;
-      }
-    })
-    .find((e) => e?.eventName === 'Deposited');
+  const deposited = parseEventLogs({
+    abi: poolAbi,
+    eventName: 'Deposited',
+    logs: receipt.logs.filter((l) => same(l.address, p.address)),
+  })[0];
   check(`${p.symbol}: Deposited event emitted by pool`, Boolean(deposited));
   if (deposited) {
     check(`${p.symbol}: deposited value == minimum (zero vetting fee)`, deposited.args._value.toString() === p.minimumDepositAmount);
   }
 
-  const balance =
-    p.asset === NATIVE_ASSET
-      ? await client.getBalance({ address: p.address })
-      : await client.readContract({ ...t, functionName: 'balanceOf', args: [p.address] });
-  check(`${p.symbol}: pool balance >= smoke deposit`, balance >= BigInt(p.minimumDepositAmount), balance.toString());
+  const isNative = p.asset === NATIVE_ASSET;
+  const token = { address: p.asset, abi: erc20Abi };
+  if (deposited) {
+    // Pool balance must rise by exactly the deposited value across the smoke deposit's block.
+    const balanceAt = (blockNumber) =>
+      isNative
+        ? client.getBalance({ address: p.address, blockNumber })
+        : client.readContract({ ...token, functionName: 'balanceOf', args: [p.address], blockNumber });
+    const [before, after] = await Promise.all([balanceAt(receipt.blockNumber - 1n), balanceAt(receipt.blockNumber)]);
+    const delta = after - before;
+    check(`${p.symbol}: pool balance increased by deposited value`, delta === deposited.args._value, `delta ${delta}`);
+
+    if (!isNative) {
+      const transfer = parseEventLogs({
+        abi: erc20Abi,
+        eventName: 'Transfer',
+        logs: receipt.logs.filter((l) => same(l.address, p.asset)),
+      }).find((e) => same(e.args.from, d.contracts.entrypoint.proxy) && same(e.args.to, p.address));
+      check(
+        `${p.symbol}: ERC-20 Transfer entrypoint -> pool == deposited value`,
+        transfer?.args.value === deposited.args._value,
+        transfer ? `value ${transfer.args.value}` : 'no matching Transfer log',
+      );
+    }
+  }
 }
 
 console.log(failures === 0 ? '\nALL CHECKS PASSED' : `\n${failures} CHECK(S) FAILED`);

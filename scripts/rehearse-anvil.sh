@@ -15,32 +15,70 @@ DEPLOYER=0x5ea5000000000000000000000000000000000d01
 POSTMAN=0x5ea5000000000000000000000000000000000d02
 
 FORGE_OUT="$CONTRACTS/deployments/11155111.json"
+REAL_BROADCAST="$CONTRACTS/broadcast"
+
+# Refuse to run if something (e.g. a leftover KEEP_ANVIL=1 instance) already answers on the port:
+# the new anvil would fail to bind while every later call silently hit the old node.
+if cast chain-id --rpc-url "$RPC" >/dev/null 2>&1; then
+  echo "error: an RPC node is already listening on $RPC; stop it or set ANVIL_PORT" >&2
+  exit 1
+fi
+
 BACKUP=""
 if [[ -f "$FORGE_OUT" ]]; then BACKUP="$(mktemp)"; cp "$FORGE_OUT" "$BACKUP"; fi
+RUN_MARKER="$(mktemp)"
 
 anvil --fork-url "$ETHEREUM_SEPOLIA_RPC" --chain-id 11155111 --port "$PORT" --silent &
 ANVIL_PID=$!
 cleanup() {
   if [[ -n "$BACKUP" ]]; then mv "$BACKUP" "$FORGE_OUT"; else rm -f "$FORGE_OUT"; fi
+  rm -f "$RUN_MARKER"
   if [[ "${KEEP_ANVIL:-0}" != "1" ]]; then kill "$ANVIL_PID" 2>/dev/null || true; fi
 }
 trap cleanup EXIT
 
-for _ in $(seq 1 60); do cast chain-id --rpc-url "$RPC" >/dev/null 2>&1 && break; sleep 0.5; done
+ready=0
+for _ in $(seq 1 60); do
+  if ! kill -0 "$ANVIL_PID" 2>/dev/null; then
+    echo "error: anvil exited; is port $PORT in use?" >&2
+    exit 1
+  fi
+  if cast chain-id --rpc-url "$RPC" >/dev/null 2>&1; then ready=1; break; fi
+  sleep 0.5
+done
+if [[ "$ready" != 1 ]]; then
+  echo "error: anvil did not become ready on $RPC within 30s" >&2
+  exit 1
+fi
 cast rpc anvil_setBalance "$DEPLOYER" 0x56BC75E2D63100000 --rpc-url "$RPC" >/dev/null
 cast rpc anvil_impersonateAccount "$DEPLOYER" --rpc-url "$RPC" >/dev/null
 
 export OWNER_ADDRESS="$DEPLOYER" POSTMAN_ADDRESS="$POSTMAN" DEPLOYER_ADDRESS="$DEPLOYER"
 export FOUNDRY_BROADCAST="broadcast-anvil"
 
+# The rehearsal must never write forge's real broadcast dir (real Sepolia logs live there).
+# Abort if anything under it was created/modified during this run, or if FOUNDRY_BROADCAST was ignored.
+assert_real_broadcast_untouched() {
+  if [[ -d "$REAL_BROADCAST" && -n "$(find "$REAL_BROADCAST" -newer "$RUN_MARKER" -print -quit)" ]]; then
+    echo "error: $REAL_BROADCAST was written during the rehearsal; FOUNDRY_BROADCAST was ignored" >&2
+    exit 1
+  fi
+  if [[ ! -d "$CONTRACTS/broadcast-anvil" || -z "$(find "$CONTRACTS/broadcast-anvil" -newer "$RUN_MARKER" -print -quit)" ]]; then
+    echo "error: forge logs did not land in broadcast-anvil/; FOUNDRY_BROADCAST was ignored" >&2
+    exit 1
+  fi
+}
+
 cd "$CONTRACTS"
 forge script script/CourseDeploy.s.sol:CourseSepolia --rpc-url "$RPC" --broadcast --unlocked --sender "$DEPLOYER" --slow -vv
+assert_real_broadcast_untouched
 mkdir -p "$ROOT/deployments/raw/anvil"
 cp "$FORGE_OUT" "$ROOT/deployments/raw/anvil/forge-deployment.json"
 
 ENTRYPOINT_ADDRESS="$(node -e 'const c=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).contracts;console.log(c.find(x=>x.name==="Entrypoint_Proxy").address)' "$FORGE_OUT")"
 export ENTRYPOINT_ADDRESS
 forge script script/CourseSmoke.s.sol:CourseSmoke --rpc-url "$RPC" --broadcast --unlocked --sender "$DEPLOYER" --slow -vv
+assert_real_broadcast_untouched
 cp "$CONTRACTS/broadcast-anvil/CourseSmoke.s.sol/11155111/run-latest.json" "$ROOT/deployments/raw/anvil/smoke-run.json"
 
 cd "$ROOT/scripts"

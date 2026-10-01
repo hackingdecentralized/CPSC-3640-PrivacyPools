@@ -59,8 +59,8 @@ describe('buildDeployment', () => {
   const onchain = {
     roles: { owner: D, postman: '0x5ea5000000000000000000000000000000000d02' },
     pools: {
-      '0x1000000000000000000000000000000000000005': { scope: 111n, minimumDepositAmount: 10n ** 15n, vettingFeeBPS: 0n, maxRelayFeeBPS: 100n, decimals: 18 },
-      '0x1000000000000000000000000000000000000006': { scope: 222n, minimumDepositAmount: 10n * 10n ** 18n, vettingFeeBPS: 0n, maxRelayFeeBPS: 100n, decimals: 18 },
+      '0x1000000000000000000000000000000000000005': { scope: 2n ** 250n + 12345n, minimumDepositAmount: 10n ** 15n, vettingFeeBPS: 0n, maxRelayFeeBPS: 100n, decimals: 18 },
+      '0x1000000000000000000000000000000000000006': { scope: 2n ** 251n + 67890n, minimumDepositAmount: 10n * 10n ** 18n, vettingFeeBPS: 0n, maxRelayFeeBPS: 100n, decimals: 18 },
     },
     token: { address: '0xBc2BEfb9a8aA70AfA23F7451A0794466976B6974', name: 'Bulldogs', symbol: 'BULLDOGS', decimals: 18 },
   };
@@ -85,8 +85,8 @@ describe('buildDeployment', () => {
         },
       },
       pools: [
-        { symbol: 'ETH', asset: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', address: '0x1000000000000000000000000000000000000005', scope: '111', deploymentBlock: 101, decimals: 18, minimumDepositAmount: '1000000000000000', vettingFeeBPS: 0, maxRelayFeeBPS: 100 },
-        { symbol: 'BULLDOGS', asset: '0xBc2BEfb9a8aA70AfA23F7451A0794466976B6974', address: '0x1000000000000000000000000000000000000006', scope: '222', deploymentBlock: 102, decimals: 18, minimumDepositAmount: '10000000000000000000', vettingFeeBPS: 0, maxRelayFeeBPS: 100 },
+        { symbol: 'ETH', asset: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', address: '0x1000000000000000000000000000000000000005', scope: '1809251394333065553493296640760748560207343510400633813116524750123642662969', deploymentBlock: 101, decimals: 18, minimumDepositAmount: '1000000000000000', vettingFeeBPS: 0, maxRelayFeeBPS: 100 },
+        { symbol: 'BULLDOGS', asset: '0xBc2BEfb9a8aA70AfA23F7451A0794466976B6974', address: '0x1000000000000000000000000000000000000006', scope: '3618502788666131106986593281521497120414687020801267626233049500247285369138', deploymentBlock: 102, decimals: 18, minimumDepositAmount: '10000000000000000000', vettingFeeBPS: 0, maxRelayFeeBPS: 100 },
       ],
       token: { address: '0xBc2BEfb9a8aA70AfA23F7451A0794466976B6974', name: 'Bulldogs', symbol: 'BULLDOGS', decimals: 18 },
       smokeTest: { ethDepositTx: '0xaaa', tokenDepositTx: '0xddd' },
