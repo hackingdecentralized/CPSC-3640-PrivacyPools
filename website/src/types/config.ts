@@ -1,0 +1,39 @@
+import { ChainAssets } from '~/config';
+import { Cookies, CustomThemes } from '~/types';
+
+export interface Env {
+  PROJECT_ID: string;
+  ALCHEMY_KEY: string;
+  FEE_COLLECTOR: string;
+  ASP_ENDPOINT_TEST: string;
+  ASP_ENDPOINT_NON_TEST: string;
+  TEST_MODE: boolean;
+  SHOW_DISCLAIMER: boolean;
+  IS_TESTNET: boolean;
+  SHOW_TEST_CHAINS: boolean;
+  GITHUB_HASH: string;
+  // HYPERSYNC_KEY removed from client-side for security
+  SENTRY_DSN: string;
+  SENTRY_AUTH_TOKEN: string;
+
+  // New migration config
+  IS_MIGRATION_ACTIVE: boolean;
+  SHOW_MIGRATION_BANNER: boolean;
+  MIGRATION_RELAYER_URL: string;
+}
+
+export interface Constants {
+  FOOTER_LINKS: { label: string; href: string }[];
+  ASP_OPTIONS: string[];
+  COOKIES: Cookies;
+  ITEMS_PER_PAGE: number;
+  TOC_URL: string;
+  PENDING_STATUS_MESSAGE: string;
+  DEFAULT_ASSET: ChainAssets;
+}
+
+export interface Config {
+  env: Env;
+  constants: Constants;
+  customThemes: CustomThemes;
+}

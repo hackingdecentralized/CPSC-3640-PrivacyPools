@@ -1,0 +1,37 @@
+export const MOCK_ALL_EVENTS = {
+  page: 1,
+  perPage: 10,
+  total: 3,
+  events: [
+    {
+      type: 'deposit',
+      createdAt: '2025-02-24T16:38:25.454Z',
+      amount: '9900000000000000',
+      address: '0xfc71Ced539B03F28F88F669f9D2f18e76d6B45bb',
+      txHash: '0x59294391abd4d045f1212aa28efadd3d8a15d34aa6a0e1bd0938130dafc5be7c',
+      precommitmentHash: '21556610135255957422814471190999894763633713731795804616527845386034702269606',
+      reviewStatus: 'pending',
+      timestamp: 1740413064000,
+    },
+    {
+      type: 'deposit',
+      createdAt: '2025-02-24T14:32:19.465Z',
+      amount: '9900000000000000',
+      address: '0xfc71Ced539B03F28F88F669f9D2f18e76d6B45bb',
+      txHash: '0xac0d266525f9b31168fecc767bb4b2094649674bfa9772e85750c0939deb21d4',
+      precommitmentHash: '20932087725252123010629366194413175320318234427845991100320610109542320257412',
+      reviewStatus: 'approved',
+      timestamp: 1740407532000,
+    },
+    {
+      type: 'deposit',
+      createdAt: '2025-02-24T14:31:19.465Z',
+      amount: '9900000000000000',
+      address: '0xfc71Ced539B03F28F88F669f9D2f18e76d6B45bb',
+      txHash: '0xac0d266525f9b31168fecc767bb4b2094649674bfa9772e85750c0939deb21d4',
+      precommitmentHash: '20932087725252123010629366194413175320318234427845991100320610109542320257412',
+      reviewStatus: 'declined',
+      timestamp: 1740407479000,
+    },
+  ],
+};

@@ -1,0 +1,162 @@
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { MOCK_RELAYER } from '~/__tests__/__mocks__';
+import { chainData, whitelistedChains } from '~/config/chainData';
+import { FeesResponse, RelayerResponse } from '~/types';
+import { relayerClient, RelayerRequestError } from '~/utils/relayerClient';
+
+const chainId = whitelistedChains[0].id;
+const relayerUrl = chainData[chainId].relayers[0].url;
+const assetAddress = chainData[chainId].poolInfo[0].assetAddress;
+global.fetch = jest.fn() as unknown as typeof fetch;
+
+// Mock global fetch
+const mockFetch = jest.spyOn(global, 'fetch').mockImplementation(
+  jest.fn(() =>
+    Promise.resolve({
+      ok: true,
+      json: () => {},
+    } as Response),
+  ),
+);
+
+describe('relayerClient', () => {
+  beforeEach(() => {
+    // Clear mock before each test
+    mockFetch.mockClear();
+  });
+
+  describe('fetchFees', () => {
+    it('should fetch fees successfully', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: (): Promise<FeesResponse> =>
+          Promise.resolve({
+            feeBPS: MOCK_RELAYER.feeBPS,
+            feeReceiverAddress: MOCK_RELAYER.feeReceiverAddress,
+            chainId: chainId,
+            assetAddress: assetAddress,
+            minWithdrawAmount: '1000000000000000000',
+            maxGasPrice: '20000000000',
+          }),
+      } as Response);
+
+      const result = await relayerClient.fetchFees(relayerUrl, chainId, assetAddress);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${relayerUrl}/relayer/details?chainId=${chainId}&assetAddress=${assetAddress}`,
+      );
+      expect(result).toEqual({
+        feeBPS: MOCK_RELAYER.feeBPS,
+        feeReceiverAddress: MOCK_RELAYER.feeReceiverAddress,
+        chainId: chainId,
+        assetAddress: assetAddress,
+        minWithdrawAmount: '1000000000000000000',
+        maxGasPrice: '20000000000',
+      });
+    });
+
+    it('should throw an error when fetching fees fails', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Failed to fetch fees'));
+
+      await expect(relayerClient.fetchFees(relayerUrl, chainId, assetAddress)).rejects.toThrow('Failed to fetch fees');
+    });
+
+    it('should relay a withdrawal request successfully', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: (): Promise<RelayerResponse> => Promise.resolve(MOCK_RELAYER.relayResponse),
+      } as Response);
+
+      const withdrawal = MOCK_RELAYER.withdrawRequest;
+      const proof = MOCK_RELAYER.withdrawProof.proof;
+      const publicSignals = MOCK_RELAYER.withdrawProof.publicSignals;
+      const scope = MOCK_RELAYER.scope;
+      const feeCommitment = MOCK_RELAYER.feeCommitment;
+
+      const result = await relayerClient.relay(relayerUrl, {
+        withdrawal,
+        proof,
+        publicSignals,
+        scope,
+        chainId,
+        feeCommitment,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(`${relayerUrl}/relayer/request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(
+          {
+            withdrawal,
+            proof,
+            publicSignals,
+            scope,
+            chainId,
+            feeCommitment,
+          },
+          (_key, value) => (typeof value === 'bigint' ? value.toString() : value),
+        ),
+      });
+
+      expect(result).toEqual(MOCK_RELAYER.relayResponse);
+    });
+  });
+
+  describe('fetchQuote', () => {
+    const quoteFields = { chainId, amount: '100000000000000000', asset: assetAddress, extraGas: false };
+    const recipient = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+    const sentBody = () => JSON.parse((mockFetch.mock.calls[0][1] as RequestInit).body as string);
+
+    it('phase 1: the body on the wire has no recipient key', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ baseFeeBPS: '100', feeBPS: '250', gasPrice: '1', detail: {} }),
+      } as Response);
+
+      const result = await relayerClient.fetchQuote(relayerUrl, quoteFields);
+
+      expect(mockFetch.mock.calls[0][0]).toBe(`${relayerUrl}/relayer/quote`);
+      expect(sentBody()).toEqual(quoteFields);
+      expect(Object.keys(sentBody())).not.toContain('recipient');
+      expect(result.feeCommitment).toBeUndefined();
+    });
+
+    it('phase 2: the body on the wire carries the recipient', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            baseFeeBPS: '100',
+            feeBPS: '250',
+            gasPrice: '1',
+            detail: {},
+            feeCommitment: MOCK_RELAYER.feeCommitment,
+          }),
+      } as Response);
+
+      const result = await relayerClient.fetchQuote(relayerUrl, { ...quoteFields, recipient });
+
+      expect(sentBody()).toEqual({ ...quoteFields, recipient });
+      expect(result.feeCommitment).toEqual(MOCK_RELAYER.feeCommitment);
+    });
+
+    it('a non-2xx answer throws with the status and body kept', async () => {
+      const body = '{"message":"body must have required property \'recipient\'"}';
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        text: () => Promise.resolve(body),
+      } as Response);
+
+      const err = await relayerClient.fetchQuote(relayerUrl, quoteFields).catch((e) => e);
+
+      expect(err).toBeInstanceOf(RelayerRequestError);
+      expect(err.status).toBe(400);
+      expect(err.body).toBe(body);
+      expect(err.message).toBe(`Failed to fetch quote: 400 Bad Request - ${body}`);
+    });
+  });
+});

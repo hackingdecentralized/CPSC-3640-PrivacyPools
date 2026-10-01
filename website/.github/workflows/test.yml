@@ -1,0 +1,40 @@
+name: E2E and Unit Tests
+
+on:
+  pull_request:
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Authenticate with GitHub Packages
+        run: |
+          echo "@defi-wonderland/privacy-pool-core-sdk:registry=https://npm.pkg.github.com/" >> ~/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+          echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+
+      - name: Create env file
+        run: |
+          touch .env
+          echo "NEXT_PUBLIC_ALCHEMY_KEY=${{ secrets.NEXT_PUBLIC_ALCHEMY_KEY }}" >> .env
+          echo "NEXT_PUBLIC_MAX_DEPOSIT=${{ secrets.NEXT_PUBLIC_MAX_DEPOSIT }}" >> .env
+          echo "NEXT_PUBLIC_TEST_MODE=true" >> .env
+
+      - name: Install project dependencies
+        run: pnpm install --frozen-lockfile --prefer-frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: run Cypress and Jest
+        uses: cypress-io/github-action@v6
+        with:
+          build: pnpm build
+          start: pnpm start
+          wait-on: "http://localhost:3000"
+          command: pnpm test
