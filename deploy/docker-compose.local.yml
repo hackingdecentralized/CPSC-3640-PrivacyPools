@@ -9,9 +9,12 @@
 #   # 3. start the stack (RELAYER_PRIVATE_KEY = anvil dev account #2, a public test key: local only, never on Sepolia)
 #   ADMIN_ADDRESSES=0xYourTeacherWallet ADMIN_TOKEN_SECRET=$(openssl rand -hex 32) RELAYER_PRIVATE_KEY=0x... \
 #     docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.local.yml up -d --build --wait
-#   curl -s localhost:8080/health; curl -s localhost:13000/ping
+#   curl -s localhost:8182/health; curl -s localhost:3132/ping
 #   # 4. tear down; -v drops the local volumes, because the next fork needs a fresh ASP database
 #   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.local.yml down -v
+#
+# The ports are published by the base file, on 127.0.0.1 only: ASP 8182 (ASP_PORT), relayer 3132 (RELAYER_PORT).
+# Compose appends port lists across files, so this override does not repeat them.
 #
 # host.docker.internal is the host machine (Docker Desktop provides it; extra_hosts adds it on Linux, where anvil
 # must also listen on 0.0.0.0 instead of 127.0.0.1).
@@ -41,8 +44,6 @@ services:
           create_host_path: false
     extra_hosts:
       - host.docker.internal:host-gateway
-    ports:
-      - 127.0.0.1:8080:8080
 
   relayer:
     environment:
@@ -56,8 +57,6 @@ services:
           create_host_path: false
     extra_hosts:
       - host.docker.internal:host-gateway
-    ports:
-      - 127.0.0.1:13000:3000
 
   caddy:
     # Not started locally: the services are published on localhost instead.

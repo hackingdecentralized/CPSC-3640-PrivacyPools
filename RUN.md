@@ -30,6 +30,8 @@ cp .env.example .env && chmod 600 .env    # fill it in, every line is commented
 
 `ASP_HOST` and `RELAYER_HOST` can be `asp.<server-ip>.sslip.io` and `relayer.<server-ip>.sslip.io` if you have no domain. Full guide: `deploy/README.md`.
 
+The ASP listens on port 8182 and the relayer on 3132, in Docker and on the host (published on `127.0.0.1` only). With a Cloudflare Tunnel, point the public hostnames at `http://localhost:8182` and `http://localhost:3132` (cloudflared on the host) or `asp:8182` and `relayer:3132` (cloudflared in compose).
+
 **3. Website (GitHub Pages).** In the GitHub repo:
 
 1. **Settings → Pages**: set **Source** to **GitHub Actions**.

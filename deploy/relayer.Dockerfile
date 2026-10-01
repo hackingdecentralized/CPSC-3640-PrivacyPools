@@ -6,7 +6,7 @@
 # Build from the repo root (context core/packages; the entrypoint comes from the named context "deploy"):
 #   docker build -f deploy/relayer.Dockerfile --build-context deploy=deploy -t course-relayer core/packages
 # Run:
-#   docker run -p 13000:3000 -e RPC_URL=... -e RELAYER_PRIVATE_KEY=... \
+#   docker run -p 3132:3132 -e RPC_URL=... -e RELAYER_PRIVATE_KEY=... \
 #     -v "$PWD/deployments/<net>.json:/config/deployment.json:ro" -v relayer-data:/data course-relayer
 FROM node:23
 
@@ -31,9 +31,9 @@ COPY circuits/trusted-setup/final-keys/commitment.zkey \
 
 COPY --from=deploy relayer-entrypoint.mjs /build/relayer-entrypoint.mjs
 
-ENV NODE_ENV=production DEPLOYMENT_FILE=/config/deployment.json RELAYER_DB_PATH=/data/relayer.sqlite
+ENV NODE_ENV=production PORT=3132 DEPLOYMENT_FILE=/config/deployment.json RELAYER_DB_PATH=/data/relayer.sqlite
 RUN mkdir -p /data && chown node:node /data
 VOLUME ["/data"]
-EXPOSE 3000
+EXPOSE 3132
 USER node
 ENTRYPOINT ["node", "/build/relayer-entrypoint.mjs"]

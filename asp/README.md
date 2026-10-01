@@ -17,7 +17,7 @@ A small Association Set Provider for the CPSC 3640 Privacy Pool demo. It:
 | `POSTMAN_UNLOCKED_ADDRESS` | one of | | anvil only: impersonated postman |
 | `ADMIN_ADDRESSES` | yes | | Comma-separated teacher wallet addresses |
 | `ADMIN_TOKEN_SECRET` | yes | | ≥ 32 random characters (`openssl rand -hex 32`) |
-| `PORT` | no | 8080 | HTTP port |
+| `PORT` | no | 8080 | HTTP port (the Docker image and the compose stack set 8182) |
 | `DB_PATH` | no | `./data/asp.sqlite` (`/data/asp.sqlite` in Docker) | SQLite file |
 | `CORS_ORIGINS` | no | `*` | Comma-separated allowed origins |
 | `AUTO_APPROVE_DELAY_SEC` | no | 120 | Initial auto-approve delay (admin can change) |
@@ -36,7 +36,7 @@ DEPLOYMENT_FILE=../deployments/sepolia.json RPC_URL=... POSTMAN_PRIVATE_KEY=... 
   ADMIN_ADDRESSES=0x... ADMIN_TOKEN_SECRET=$(openssl rand -hex 32) npm start
 ```
 
-Docker: `docker build -t course-asp . && docker run -p 8080:8080 -v $PWD/../deployments/sepolia.json:/config/deployment.json:ro -v asp-data:/data --env-file asp.env course-asp`
+Docker: `docker build -t course-asp . && docker run -p 8182:8182 -v $PWD/../deployments/sepolia.json:/config/deployment.json:ro -v asp-data:/data --env-file asp.env course-asp`
 
 ## Local run against an anvil fork
 
@@ -47,7 +47,7 @@ Docker: `docker build -t course-asp . && docker run -p 8080:8080 -v $PWD/../depl
 KEEP_ANVIL=1 ANVIL_PORT=8547 ETHEREUM_SEPOLIA_RPC=https://ethereum-sepolia-rpc.publicnode.com ./scripts/rehearse-anvil.sh
 # start the ASP (Ctrl-C to stop)
 ADMIN_ADDRESSES=0xYourTeacherWallet ./asp/scripts/dev-anvil.sh
-curl -s localhost:8080/health
+curl -s localhost:8182/health
 # when done: stop anvil
 lsof -ti tcp:8547 | xargs kill
 ```
@@ -57,7 +57,7 @@ lsof -ti tcp:8547 | xargs kill
 | `ADMIN_ADDRESSES` | required |
 | `ASP_RPC` | `http://127.0.0.1:8547` (passed to the ASP as `RPC_URL`) |
 | `DEPLOYMENT_FILE` | `../deployments/anvil.json` |
-| `PORT` | 8080 |
+| `PORT` | 8182 |
 | `AUTO_APPROVE_DELAY_SEC` | 10 |
 | `PUBLISH_INTERVAL_SEC` | 5 |
 | `CONFIRMATIONS` | 0 |

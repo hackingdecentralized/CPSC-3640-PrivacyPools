@@ -6,7 +6,7 @@
 # Env (all optional except ADMIN_ADDRESSES):
 #   ASP_RPC                 anvil RPC                       (default http://127.0.0.1:8547)
 #   DEPLOYMENT_FILE         deployment record               (default <repo>/deployments/anvil.json)
-#   PORT                    HTTP port                       (default 8080)
+#   PORT                    HTTP port                       (default 8182)
 #   AUTO_APPROVE_DELAY_SEC  initial auto-approve delay      (default 10)
 #   PUBLISH_INTERVAL_SEC    initial min seconds per publish (default 5)
 #   CONFIRMATIONS           blocks to wait before indexing  (default 0)
@@ -64,7 +64,7 @@ mkdir -p "$(dirname "$DB_PATH")"
 unset POSTMAN_PRIVATE_KEY
 export DEPLOYMENT_FILE POSTMAN_UNLOCKED_ADDRESS ADMIN_ADDRESSES ADMIN_TOKEN_SECRET DB_PATH
 export RPC_URL="$ASP_RPC"
-export PORT="${PORT:-8080}"
+export PORT="${PORT:-8182}"
 export AUTO_APPROVE_DELAY_SEC="${AUTO_APPROVE_DELAY_SEC:-10}"
 export PUBLISH_INTERVAL_SEC="${PUBLISH_INTERVAL_SEC:-5}"
 export CONFIRMATIONS="${CONFIRMATIONS:-0}"

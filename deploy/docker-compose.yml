@@ -26,6 +26,8 @@ services:
     build: ../asp
     restart: unless-stopped
     environment:
+      # Container port; the same number on the host and in the tunnel/Caddy configs.
+      PORT: 8182
       RPC_URL: ${RPC_URL:-}
       POSTMAN_PRIVATE_KEY: ${POSTMAN_PRIVATE_KEY:-}
       ADMIN_ADDRESSES: ${ADMIN_ADDRESSES:-}
@@ -37,12 +39,16 @@ services:
       POLL_INTERVAL_MS: ${POLL_INTERVAL_MS:-}
       CONFIRMATIONS: ${CONFIRMATIONS:-}
       LOG_CHUNK_SIZE: ${LOG_CHUNK_SIZE:-}
+    # Host loopback only, for a cloudflared that runs on the host (public hostname -> http://localhost:8182).
+    # Nothing is exposed publicly: Caddy or the tunnel is the way in.
+    ports:
+      - "127.0.0.1:${ASP_PORT:-8182}:8182"
     volumes:
       - *deployment-file
       # The ASP database. The teacher's declines and settings live only here: never delete this volume.
       - asp-data:/data
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8182/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -59,16 +65,20 @@ services:
         deploy: .
     restart: unless-stopped
     environment:
+      PORT: 3132
       RPC_URL: ${RPC_URL:-}
       RELAYER_PRIVATE_KEY: ${RELAYER_PRIVATE_KEY:-}
       # Flat fee for both assets in basis points: 10 = 0.1%. The unmodified website refuses a 0 fee; the
       # pools cap it at 100.
       RELAYER_FEE_BPS: ${RELAYER_FEE_BPS:-10}
+    # Host loopback only, like the ASP (public hostname -> http://localhost:3132).
+    ports:
+      - "127.0.0.1:${RELAYER_PORT:-3132}:3132"
     volumes:
       - *deployment-file
       - relayer-data:/data
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/ping').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3132/ping').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
       interval: 30s
       timeout: 5s
       retries: 3

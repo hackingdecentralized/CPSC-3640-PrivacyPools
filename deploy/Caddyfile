@@ -4,9 +4,9 @@
 # CORS is handled by the services themselves (ASP: CORS_ORIGINS; relayer: open), so Caddy only proxies.
 
 {$ASP_HOST} {
-	reverse_proxy asp:8080
+	reverse_proxy asp:8182
 }
 
 {$RELAYER_HOST} {
-	reverse_proxy relayer:3000
+	reverse_proxy relayer:3132
 }

@@ -85,7 +85,7 @@ RELAYER_HOST="$(env_value RELAYER_HOST)"
 cat <<EOF
 
 The stack is up. On the first start, Caddy may need a minute to obtain certificates (with the Cloudflare Tunnel,
-check that its public hostnames point at asp:8080 and relayer:3000). Check from anywhere:
+check that its public hostnames point at asp:8182 and relayer:3132). Check from anywhere:
   curl -s https://$ASP_HOST/health
   curl -s "https://$RELAYER_HOST/relayer/details?chainId=${CHAIN_ID:-11155111}&assetAddress=$NATIVE_ASSET"
 Logs: cd deploy && ${COMPOSE_FILE:+COMPOSE_FILE=$COMPOSE_FILE }docker compose logs -f --tail 100 asp relayer $FRONT

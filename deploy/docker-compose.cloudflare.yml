@@ -2,8 +2,10 @@
 # up.sh adds this file automatically when CLOUDFLARE_TUNNEL_TOKEN is set in deploy/.env.
 #
 # In the Cloudflare dashboard (Zero Trust -> Networks -> Tunnels -> your tunnel -> Public hostnames):
-#   <ASP_HOST>      -> Service: HTTP  asp:8080
-#   <RELAYER_HOST>  -> Service: HTTP  relayer:3000
+#   <ASP_HOST>      -> Service: HTTP  asp:8182
+#   <RELAYER_HOST>  -> Service: HTTP  relayer:3132
+# (If you run cloudflared on the host instead of this container, use http://localhost:8182 and
+# http://localhost:3132: docker-compose.yml publishes both on 127.0.0.1.)
 services:
   caddy:
     # Not started with the tunnel (Caddy could not get certificates behind it anyway).

@@ -31,7 +31,7 @@ up() {
   cast rpc anvil_impersonateAccount "$postman" --rpc-url "$RPC" >/dev/null
   cast rpc anvil_setBalance "$postman" 0x56BC75E2D63100000 --rpc-url "$RPC" >/dev/null
 
-  echo "== 2/4 start the ASP (:8080) and relayer (:13000)"
+  echo "== 2/4 start the ASP (:8182) and relayer (:3132)"
   ADMIN_ADDRESSES="$admin" ADMIN_TOKEN_SECRET="$(openssl rand -hex 32)" \
     RELAYER_PRIVATE_KEY="$(cast wallet private-key "$ANVIL_MNEMONIC" 2)" POSTMAN_UNLOCKED_ADDRESS="$postman" \
     "${COMPOSE[@]}" up -d --build --wait
@@ -42,12 +42,12 @@ up() {
 
   echo "== 4/4 start the website (http://localhost:3100)"
   (cd "$ROOT/website" && NEXT_PUBLIC_IS_TESTNET=true NEXT_PUBLIC_SEPOLIA_RPC_URL="$RPC" \
-    NEXT_PUBLIC_ASP_ENDPOINT_TEST=http://127.0.0.1:8080 NEXT_PUBLIC_RELAYER_URL=http://127.0.0.1:13000 \
+    NEXT_PUBLIC_ASP_ENDPOINT_TEST=http://127.0.0.1:8182 NEXT_PUBLIC_RELAYER_URL=http://127.0.0.1:3132 \
     nohup corepack pnpm dev -p 3100 > "$STATE/website.log" 2>&1 & echo $! > "$STATE/website.pid")
   for _ in $(seq 1 90); do curl -sf -o /dev/null http://localhost:3100 && break; sleep 2; done
   echo
   echo "Ready:  website http://localhost:3100   ASP page http://localhost:3100/asp"
-  echo "        ASP http://127.0.0.1:8080/health   relayer http://127.0.0.1:13000/ping"
+  echo "        ASP http://127.0.0.1:8182/health   relayer http://127.0.0.1:3132/ping"
   echo "Next:   ./scripts/local-demo.sh fund <your MetaMask address>"
 }
 

@@ -6,7 +6,7 @@
 //
 // Usage (from the repo root):
 //   node scripts/e2e-withdraw.mjs --deployment deployments/anvil.json --rpc http://127.0.0.1:8547 \
-//     --asp http://127.0.0.1:8080 --relayer http://127.0.0.1:13000 [--artifacts website/public] [--asp-timeout 600]
+//     --asp http://127.0.0.1:8182 --relayer http://127.0.0.1:3132 [--artifacts website/public] [--asp-timeout 600]
 //
 // Student account: on anvil a fresh address is impersonated and funded. On any other chain the script uses
 // STUDENT_PRIVATE_KEY from the environment (never hard-coded), which needs ~0.003 ETH plus gas.

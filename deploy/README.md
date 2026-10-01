@@ -134,7 +134,7 @@ The relayer's volume holds only its request log, so it does not need backups. Ca
 ## Local run against an anvil fork
 
 `docker-compose.local.yml` runs the same two images on your laptop against the anvil Sepolia fork, without Caddy:
-- It publishes the ASP on `127.0.0.1:8080` and the relayer on `127.0.0.1:13000`.
+- It publishes the ASP on `127.0.0.1:8182` and the relayer on `127.0.0.1:3132`. The base `docker-compose.yml` does this (loopback only); the override adds no ports of its own.
 - It uses `deployments/anvil.json`.
 - The ASP signs as the impersonated postman (`POSTMAN_UNLOCKED_ADDRESS`).
 - It is a separate compose project, `privacy-pool-local`, so it never touches a real deployment's volumes.
@@ -154,7 +154,7 @@ ADMIN_ADDRESSES=$(cast wallet new --json | jq -r '.[0].address') ADMIN_TOKEN_SEC
   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.local.yml up -d --build --wait
 # prove it end to end
 node scripts/e2e-withdraw.mjs --deployment deployments/anvil.json --rpc http://127.0.0.1:8547 \
-  --asp http://127.0.0.1:8080 --relayer http://127.0.0.1:13000
+  --asp http://127.0.0.1:8182 --relayer http://127.0.0.1:3132
 # tear down; -v is right here (and only here): the next fork needs a fresh ASP database
 docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.local.yml down -v
 lsof -ti tcp:8547 | xargs kill
@@ -168,8 +168,10 @@ Use this if the server should open no ports, or if it sits behind NAT. Cloudflar
 
 1. In the Cloudflare dashboard, go to **Zero Trust → Networks → Tunnels → Create a tunnel** (choose Cloudflared) and copy its **token**.
 2. On that tunnel, add two **Public hostnames**:
-   - `asp.<your-domain>` → Service **HTTP** `asp:8080`
-   - `relayer.<your-domain>` → Service **HTTP** `relayer:3000`
+   - `asp.<your-domain>` → Service **HTTP** `asp:8182`
+   - `relayer.<your-domain>` → Service **HTTP** `relayer:3132`
+
+   (To run `cloudflared` on the host instead of in compose, use `http://localhost:8182` and `http://localhost:3132` as the services. `docker-compose.yml` publishes the ASP and relayer on `127.0.0.1` only, so they are reachable from the host but not from the network. Set `ASP_PORT` / `RELAYER_PORT` in `deploy/.env` to change the host-side ports.)
 3. In `deploy/.env`, set:
    - `CLOUDFLARE_TUNNEL_TOKEN=<token>`
    - `ASP_HOST` and `RELAYER_HOST` to those two hostnames
