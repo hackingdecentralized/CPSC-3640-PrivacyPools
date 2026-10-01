@@ -4,14 +4,9 @@ const constants: Constants = {
   FOOTER_LINKS: [
     { label: 'White Paper', href: '/whitepaper.pdf' },
     { label: 'Docs', href: 'https://docs.privacypools.com' },
-    { label: 'X', href: 'https://x.com/0xbowio' },
-    {
-      label: 'Support',
-      href: 'https://docs.google.com/forms/d/e/1FAIpQLSe0UKiTrZ4kD0apx75bEW0PWqJxpd6bCYh_IUKBrCkJOBzkpQ/viewform',
-    },
     {
       label: 'Github',
-      href: `https://github.com/0xbow-io/privacy-pools-website`,
+      href: `https://github.com/hackingdecentralized/CPSC-3640-PrivacyPools`,
     },
     { label: 'Terms', href: 'https://docs.privacypools.com/toc' },
     { label: 'Privacy', href: 'https://docs.privacypools.com/privacy-policy' },
