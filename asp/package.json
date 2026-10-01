@@ -8,7 +8,6 @@
   "scripts": {
     "start": "node src/main.ts",
     "test": "vitest run test/unit",
-    "test:int": "vitest run test/integration",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
