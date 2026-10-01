@@ -22,6 +22,7 @@ Every change to a file under `core/` or `website/`. New files are marked *(new)*
 
 | File | Change | Why |
 |---|---|---|
+| `core/packages/contracts/remappings.txt` | `lean-imt/` dir remapping replaced by per-file remappings for `InternalLeanIMT.sol` and `LeanIMT.sol` | Foundry 1.5.1 resolves the `.sol`-suffixed dir target without a trailing slash, breaking `forge build` |
 | `core/packages/contracts/script/CourseDeploy.s.sol` *(new)* | `CourseSepolia` deploy config | ETH + BULLDOGS pools, zero vetting fee |
 | `core/packages/contracts/script/CourseSmoke.s.sol` *(new)* | Smoke deposits | Live post-deploy check |
 | `core/packages/contracts/test/course/CourseDeployFork.t.sol` *(new)* | Fork rehearsal tests | Verify deployment before broadcasting |
