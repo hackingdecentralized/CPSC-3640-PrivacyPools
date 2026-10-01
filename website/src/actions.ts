@@ -1,30 +1,34 @@
-'use server';
-
-import { cookies } from 'next/headers';
 import { getConstants } from '~/config/constants';
+
+// Session marker cookies. Upstream sets these through Server Actions (next/headers), which a static export
+// (GitHub Pages) cannot host, so they are written from the browser instead. Nothing on the server reads them
+// any more: the account-page redirect they fed lives in src/app/account/layout.tsx.
 
 const { COOKIES } = getConstants();
 const { USER_LOGGED, USER_CONNECTED } = COOKIES;
 
+const setCookie = (name: string, value: string) => {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${name}=${value}; path=/; SameSite=Lax`;
+};
+
+const deleteCookie = (name: string) => {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+};
+
 export async function setUserConnectedCookie() {
-  const cookieStore = await cookies();
-  cookieStore.set(USER_CONNECTED.name, USER_CONNECTED.value);
+  setCookie(USER_CONNECTED.name, USER_CONNECTED.value);
 }
 
 export async function deleteUserConnectedCookie() {
-  const cookieStore = await cookies();
-  cookieStore.delete(USER_CONNECTED.name);
+  deleteCookie(USER_CONNECTED.name);
 }
 
 export async function setUserLoggedCookie() {
-  const cookieStore = await cookies();
-  cookieStore.set(USER_LOGGED.name, USER_LOGGED.value);
+  setCookie(USER_LOGGED.name, USER_LOGGED.value);
 }
 
 export async function deleteUserLoggedCookie() {
-  const cookieStore = await cookies();
-
-  if (cookieStore.get(USER_LOGGED.name)) {
-    cookieStore.delete(USER_LOGGED.name);
-  }
+  deleteCookie(USER_LOGGED.name);
 }

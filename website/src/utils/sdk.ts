@@ -30,6 +30,7 @@ import {
   whitelistedChains,
 } from '~/config';
 import { PoolAccount, ReviewStatus } from '~/types';
+import { withBasePath } from '~/utils/basePath';
 import { anchorChains, anchorTargets } from '~/utils/blockAnchors';
 import { nowSeconds, recordTransactionTimestamp, resolveAccountTimestamps } from '~/utils/blockTimestamps';
 import { createDataService } from '~/utils/dataService';
@@ -69,11 +70,13 @@ let sdk: PrivacyPoolSDK | null = null;
 const initializeSDK = () => {
   if (!circuits) {
     // Ensure we have a valid baseUrl (client-side only)
-    const currentBaseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    if (!currentBaseUrl) {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    if (!origin) {
       throw new Error('SDK can only be initialized on client-side');
     }
-    circuits = new Circuits({ baseUrl: currentBaseUrl });
+    // The SDK fetches new URL('artifacts/<file>', baseUrl). Keep the trailing slash so a base path such as
+    // /CPSC-3640-PrivatePools (GitHub Pages) is kept rather than replaced: <origin><basePath>/artifacts/<file>.
+    circuits = new Circuits({ baseUrl: `${origin}${withBasePath('/')}` });
     sdk = new PrivacyPoolSDK(circuits);
   }
   return sdk!;

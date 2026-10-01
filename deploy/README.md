@@ -60,7 +60,7 @@ You need:
    cp .env.example .env && chmod 600 .env
    nano .env
    ```
-   The required values are `RPC_URL`, `ASP_HOST`, `RELAYER_HOST`, `POSTMAN_PRIVATE_KEY`, `ADMIN_ADDRESSES`, `ADMIN_TOKEN_SECRET` (`openssl rand -hex 32`) and `RELAYER_PRIVATE_KEY`. Set `CORS_ORIGINS` to the website's Vercel URL. `RELAYER_FEE_BPS` defaults to 10 (0.1%).
+   The required values are `RPC_URL`, `ASP_HOST`, `RELAYER_HOST`, `POSTMAN_PRIVATE_KEY`, `ADMIN_ADDRESSES`, `ADMIN_TOKEN_SECRET` (`openssl rand -hex 32`) and `RELAYER_PRIVATE_KEY`. Set `CORS_ORIGINS` to the website's origin, `https://hackingdecentralized.github.io` for GitHub Pages. `RELAYER_FEE_BPS` defaults to 10 (0.1%).
 
    Before you continue, point both hostnames at the server's IP: add DNS A records, or use the sslip.io names.
 
