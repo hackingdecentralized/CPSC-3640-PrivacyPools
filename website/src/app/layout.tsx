@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='en' suppressHydrationWarning>
-      <body className={ibm_plex_mono.className}>
+      <body className={ibm_plex_mono.className} suppressHydrationWarning>
         <AppRouterCacheProvider>
           <InitColorSchemeScript attribute='class' />
 
