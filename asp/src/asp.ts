@@ -1,3 +1,4 @@
+import { BaseError } from 'viem';
 import { createApp } from './api/app.ts';
 import type { Health } from './api/context.ts';
 import { createAuth } from './auth.ts';
@@ -8,6 +9,12 @@ import { createIndexer } from './indexer.ts';
 import { createPolicy } from './policy.ts';
 import { createPublisher } from './publisher.ts';
 import type { Clock } from './types.ts';
+
+/** viem's short message plus its provider details, without the request URL or body. */
+const publicErrorMessage = (err: unknown): string => {
+  if (err instanceof BaseError) return err.details ? `${err.shortMessage} ${err.details}` : err.shortMessage;
+  return err instanceof Error ? err.message.replace(/https?:\/\/\S+/g, '<rpc>') : String(err);
+};
 
 export type Asp = ReturnType<typeof createAsp>;
 
@@ -39,7 +46,8 @@ export function createAsp(cfg: AspConfig, clock: Clock, chain: { logs: LogSource
       health.lastPublish = await publisher.tick();
       health.lastError = null;
     } catch (err) {
-      health.lastError = err instanceof Error ? err.message : String(err);
+      // Never expose the RPC URL (it may embed an API key) on the public /health endpoint.
+      health.lastError = publicErrorMessage(err);
       throw err;
     } finally {
       health.lastTickAt = clock();

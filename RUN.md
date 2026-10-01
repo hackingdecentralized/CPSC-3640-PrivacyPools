@@ -39,7 +39,7 @@ The ASP listens on port 8182 and the relayer on 3132, in Docker and on the host 
 
    | Variable | Value |
    |---|---|
-   | `NEXT_PUBLIC_SEPOLIA_RPC_URL` | your Alchemy or Infura Sepolia URL |
+   | `NEXT_PUBLIC_SEPOLIA_RPC_URL` | `https://ethereum-sepolia-rpc.publicnode.com` (free, no key; Alchemy's free plan is too limited for the site's log scans) |
    | `NEXT_PUBLIC_ASP_ENDPOINT_TEST` | `https://<ASP_HOST>` |
    | `NEXT_PUBLIC_RELAYER_URL` | `https://<RELAYER_HOST>` |
    | `NEXT_PUBLIC_PROJECT_ID` | optional WalletConnect project ID |
