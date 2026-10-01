@@ -12,9 +12,6 @@ export interface Env {
   IS_TESTNET: boolean;
   SHOW_TEST_CHAINS: boolean;
   GITHUB_HASH: string;
-  // HYPERSYNC_KEY removed from client-side for security
-  SENTRY_DSN: string;
-  SENTRY_AUTH_TOKEN: string;
   SEPOLIA_RPC_URL: string;
   RELAYER_URL: string;
 

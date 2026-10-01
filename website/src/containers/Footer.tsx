@@ -4,8 +4,6 @@ import { Fragment, useState } from 'react';
 import Link from 'next/link';
 import { Menu, MenuItem, styled, useMediaQuery } from '@mui/material';
 import { getConfig } from '~/config';
-import { useModal } from '~/hooks';
-import { ModalType } from '~/types';
 
 const MOBILE_MORE_LABELS = ['Github', 'Terms', 'Privacy'];
 
@@ -14,13 +12,8 @@ export const Footer = () => {
     constants: { FOOTER_LINKS },
     env: { GITHUB_HASH },
   } = getConfig();
-  const { setModalOpen } = useModal();
   const isMobile = useMediaQuery('(max-width:768px)');
   const [moreAnchor, setMoreAnchor] = useState<null | HTMLElement>(null);
-
-  const handleNewsletterClick = () => {
-    setModalOpen(ModalType.NEWSLETTER_SUBSCRIPTION);
-  };
 
   const mainLinks = isMobile ? FOOTER_LINKS.filter((item) => !MOBILE_MORE_LABELS.includes(item.label)) : FOOTER_LINKS;
 
@@ -42,18 +35,19 @@ export const Footer = () => {
   return (
     <FooterContainer>
       <Links>
-        {mainLinks.map((item) => (
+        {mainLinks.map((item, index) => (
           <Fragment key={item.label}>
+            {index > 0 && <VBar>|</VBar>}
             <LinkItem>
               <Link href={item.href} target='_blank'>
                 {item.label === 'X' ? '𝕏' : item.label}
               </Link>
             </LinkItem>
-            <VBar>|</VBar>
           </Fragment>
         ))}
         {isMobile && moreLinks.length > 0 && (
           <>
+            <VBar>|</VBar>
             <LinkItem>
               <MoreButton
                 type='button'
@@ -64,7 +58,6 @@ export const Footer = () => {
                 More ▾
               </MoreButton>
             </LinkItem>
-            <VBar>|</VBar>
             <Menu
               anchorEl={moreAnchor}
               open={Boolean(moreAnchor)}
@@ -92,9 +85,6 @@ export const Footer = () => {
             </Menu>
           </>
         )}
-        <LinkItem>
-          <NewsletterLink onClick={handleNewsletterClick}>Newsletter</NewsletterLink>
-        </LinkItem>
       </Links>
     </FooterContainer>
   );
@@ -156,20 +146,6 @@ const LinkHash = styled('span')(({ theme }) => {
       padding: '0.2rem 0.8rem',
       borderRadius: '1rem',
       border: `1px solid ${theme.palette.text.primary}`,
-    },
-  };
-});
-
-const NewsletterLink = styled('span')(({ theme }) => {
-  return {
-    color: theme.palette.text.primary,
-    textDecoration: 'none',
-    fontSize: theme.typography.caption.fontSize,
-    cursor: 'pointer',
-    display: 'inline-flex',
-    alignItems: 'center',
-    '&:hover': {
-      fontWeight: 700,
     },
   };
 });

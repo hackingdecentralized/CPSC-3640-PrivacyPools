@@ -11,9 +11,6 @@ const env: Env = {
   IS_TESTNET: process.env.NEXT_PUBLIC_IS_TESTNET === 'true',
   SHOW_TEST_CHAINS: process.env.NEXT_PUBLIC_SHOW_TEST_CHAINS === 'true',
   GITHUB_HASH: process.env.NEXT_PUBLIC_GITHUB_HASH as string,
-  // HYPERSYNC_KEY removed from client-side for security
-  SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN as string,
-  SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN as string,
   // Course deployment: one Sepolia (or Sepolia-fork) RPC for both wagmi and the SDK scan, and the class relayer.
   SEPOLIA_RPC_URL: process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL ?? '',
   RELAYER_URL: process.env.NEXT_PUBLIC_RELAYER_URL ?? '',
@@ -27,7 +24,6 @@ const env: Env = {
 export const getServerEnv = () => {
   return {
     ASP_API_JWT: process.env.ASP_API_JWT as string,
-    HYPERSYNC_KEY: process.env.HYPERSYNC_KEY as string,
   };
 };
 

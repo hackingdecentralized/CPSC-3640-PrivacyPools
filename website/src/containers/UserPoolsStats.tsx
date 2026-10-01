@@ -127,7 +127,7 @@ export const UserPoolsStats = ({ selectedChainIds = [] }: UserPoolsStatsProps) =
     const map = new Map<string, number>();
     priceQueries.forEach((query, index) => {
       const asset = uniqueAssets[index][0];
-      if (query.data !== undefined) {
+      if (query.data != null) {
         map.set(asset, query.data);
       }
     });

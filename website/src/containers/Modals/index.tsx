@@ -1,4 +1,3 @@
-import { NewsletterSubscriptionModal } from '~/components';
 import { MigrationModal } from '~/migration';
 import { ActivityDetails } from './ActivityDetails';
 import { ConnectModal } from './Connect';
@@ -9,7 +8,6 @@ import { GeneratingModal } from './GeneratingZkProof';
 import { PoolDetails } from './PoolDetails';
 import { ProcessingwModal } from './Processing';
 import { ReviewModal } from './Review';
-import { SelfReportModal } from './SelfReport';
 import { SuccessModal } from './Success';
 import { WithdrawModal } from './Withdraw';
 
@@ -26,9 +24,7 @@ export const Modals = () => {
       <GeneratingModal />
       <ConnectModal />
       <MigrationModal />
-      <NewsletterSubscriptionModal />
       <ExitConfirmModal />
-      <SelfReportModal />
       <CustomRpcModal />
     </>
   );
