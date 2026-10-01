@@ -5,7 +5,7 @@ import { styled, Typography } from '@mui/material';
 import { isLocalFork } from '~/config/course';
 
 /**
- * Slim, always-on notice that this is the CPSC 3640 classroom deployment, with
+ * Slim, always-on notice that this is the CPSC 3640 / CPSC 5400 classroom deployment, with
  * a LOCAL FORK badge when course.json points at an anvil fork instead of Sepolia.
  *
  * Its height feeds `--banner-height`, which the mobile layout adds to the fixed
@@ -29,7 +29,7 @@ export const CourseBanner = () => {
 
   return (
     <Banner ref={bannerRef} role='note' data-testid='course-banner'>
-      <Typography variant='caption'>CPSC 3640 course demo — Sepolia testnet only</Typography>
+      <Typography variant='caption'>CPSC 3640 / CPSC 5400 course demo — Sepolia testnet only</Typography>
       {isLocalFork && <ForkBadge data-testid='local-fork-badge'>LOCAL FORK</ForkBadge>}
     </Banner>
   );

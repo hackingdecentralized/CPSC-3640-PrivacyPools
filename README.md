@@ -1,4 +1,4 @@
-# CPSC 3640 — Course Demo Privacy Pool (Sepolia)
+# CPSC 3640 / CPSC 5400 — Course Demo Privacy Pool (Sepolia)
 
 An educational Privacy Pool on Ethereum Sepolia, built on 0xbow's
 [privacy-pools-core](https://github.com/0xbow-io/privacy-pools-core) and

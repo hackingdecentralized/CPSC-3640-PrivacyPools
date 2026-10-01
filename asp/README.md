@@ -1,6 +1,6 @@
 # Teaching ASP
 
-A small Association Set Provider for the CPSC 3640 Privacy Pool demo. It:
+A small Association Set Provider for the CPSC 3640 / CPSC 5400 Privacy Pool demo. It:
 
 - indexes deposits from the course pools;
 - auto-approves each one after a delay unless the teacher declines it;
