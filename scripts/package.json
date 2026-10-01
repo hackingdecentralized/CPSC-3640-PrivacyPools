@@ -8,6 +8,7 @@
     "verify": "node verify-deployment.mjs"
   },
   "dependencies": {
+    "@0xbow/privacy-pools-core-sdk": "1.4.0",
     "viem": "2.37.5"
   },
   "devDependencies": {
