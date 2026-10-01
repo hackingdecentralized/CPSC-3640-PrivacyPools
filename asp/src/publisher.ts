@@ -1,3 +1,4 @@
+import { BaseError } from 'viem';
 import type { RootChain } from './chain.ts';
 import { cidOf, encodeSnapshotDocument } from './cid.ts';
 import type { Store } from './db.ts';
@@ -18,7 +19,18 @@ export type PublisherDeps = {
 
 const ROOT_CACHE_SEC = 5;
 
+/** Message safe to persist and log: viem's shortMessage omits the request details (RPC URL, which may embed an API key). */
+const errorMessage = (err: unknown): string => (err instanceof BaseError ? err.shortMessage : err instanceof Error ? err.message : String(err));
+
 export function createPublisher({ store, chain, chainId, entrypoint, clock, log = console.log }: PublisherDeps) {
+  /** A throwing logger must never change the outcome of a publish. */
+  const say = (message: string): void => {
+    try {
+      log(message);
+    } catch {
+      // ignore
+    }
+  };
   let busy = false;
   let forceRepublish = false;
   let cached: { root: bigint | null; at: number } | null = null;
@@ -45,7 +57,7 @@ export function createPublisher({ store, chain, chainId, entrypoint, clock, log 
     const confirmed = store.latestConfirmedSnapshot()?.root ?? null;
     if (confirmed !== onchain) {
       forceRepublish = true;
-      log(`reconcile: on-chain root ${onchain ?? 'none'} differs from last confirmed snapshot ${confirmed ?? 'none'}; republishing`);
+      say(`reconcile: on-chain root ${onchain ?? 'none'} differs from last confirmed snapshot ${confirmed ?? 'none'}; republishing`);
     }
   }
 
@@ -64,6 +76,7 @@ export function createPublisher({ store, chain, chainId, entrypoint, clock, log 
 
     busy = true;
     let id: number | null = null;
+    let summary = '';
     try {
       const createdAt = clock();
       const document = encodeSnapshotDocument({ chainId, entrypoint, root: root.toString(), labels: labels.map(String), createdAt });
@@ -79,16 +92,17 @@ export function createPublisher({ store, chain, chainId, entrypoint, clock, log 
       store.markSnapshotConfirmed(id, receipt.block, clock());
       forceRepublish = false;
       cached = null;
-      log(`published ASP root ${root} (${labels.length} labels, cid ${cid}, tx ${txHash})`);
-      return 'published';
+      summary = `published ASP root ${root} (${labels.length} labels, cid ${cid}, tx ${txHash})`;
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = errorMessage(err);
       if (id !== null) store.markSnapshotFailed(id, message);
-      else log(`publish failed before a snapshot was recorded: ${message}`);
+      else say(`publish failed before a snapshot was recorded: ${message}`);
       return 'failed';
     } finally {
       busy = false;
     }
+    say(summary);
+    return 'published';
   }
 
   return { tick, reconcile, onchainRoot };

@@ -1,3 +1,4 @@
+import { BaseError } from 'viem';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Receipt, RootChain } from '../../src/chain.ts';
 import { cidOf } from '../../src/cid.ts';
@@ -134,6 +135,57 @@ describe('publisher.tick failure handling', () => {
     expect(await publisher.tick()).toBe('published');
     expect(state.sent).toHaveLength(1);
   });
+
+  it('keeps the transaction hash when the receipt wait times out', async () => {
+    approve(1n);
+    const { chain, state } = fakeChain();
+    chain.waitForReceipt = async () => {
+      throw new Error('timed out');
+    };
+    expect(await make(chain).tick()).toBe('failed');
+    expect(state.sent).toHaveLength(1);
+    expect(store.latestSnapshot()).toMatchObject({ status: 'failed', error: 'timed out', txHash: txHash(1) });
+    expect(store.latestConfirmedSnapshot()).toBeNull();
+  });
+
+  it('does not let a throwing logger turn a confirmed publish into a failure', async () => {
+    approve(1n);
+    const { chain } = fakeChain();
+    const publisher = createPublisher({
+      store,
+      chain,
+      chainId: 11155111,
+      entrypoint: ENTRYPOINT,
+      clock,
+      log: () => {
+        throw new Error('logger broke');
+      },
+    });
+    expect(await publisher.tick()).toBe('published');
+    expect(store.latestSnapshot()).toMatchObject({ status: 'confirmed' });
+  });
+
+  it('persists the short viem error message, not the RPC URL in the details', async () => {
+    approve(1n);
+    const { chain } = fakeChain();
+    chain.updateRoot = async () => {
+      throw new BaseError('HTTP request failed.', { details: 'url: https://rpc.example/v2/SECRET-KEY' });
+    };
+    expect(await make(chain).tick()).toBe('failed');
+    expect(store.latestSnapshot()).toMatchObject({ status: 'failed', error: 'HTTP request failed.' });
+  });
+});
+
+describe('publisher.tick concurrency', () => {
+  it('rejects an overlapping tick while one is publishing', async () => {
+    approve(1n);
+    const { chain, state } = fakeChain();
+    const publisher = make(chain);
+    const first = publisher.tick();
+    expect(await publisher.tick()).toBe('waiting');
+    expect(await first).toBe('published');
+    expect(state.sent).toHaveLength(1);
+  });
 });
 
 describe('publisher.reconcile', () => {
@@ -148,7 +200,8 @@ describe('publisher.reconcile', () => {
     expect(store.latestSnapshot()).toMatchObject({ id: unsent, status: 'failed', error: 'not sent' });
   });
 
-  it('forces a republish when the chain root differs from the last confirmed snapshot', async () => {
+  /** A confirmed snapshot on one chain, then a fresh chain with no root, reconciled. The interval is 3600 s. */
+  async function reconciledAgainstEmptyChain() {
     approve(1n);
     const first = fakeChain();
     await make(first.chain).tick();
@@ -156,10 +209,33 @@ describe('publisher.reconcile', () => {
     const fresh = fakeChain(null);
     const publisher = make(fresh.chain);
     await publisher.reconcile();
+    return { publisher, fresh };
+  }
+
+  it('forces a republish when the chain root differs from the last confirmed snapshot', async () => {
+    const { publisher, fresh } = await reconciledAgainstEmptyChain();
     now += 3_600;
     expect(await publisher.tick()).toBe('published');
     expect(fresh.state.sent).toHaveLength(1);
     expect(await publisher.tick()).toBe('waiting');
+  });
+
+  it('still respects the publish interval when forcing a republish', async () => {
+    const { publisher, fresh } = await reconciledAgainstEmptyChain();
+    expect(await publisher.tick()).toBe('waiting');
+    expect(fresh.state.sent).toHaveLength(0);
+    now += 3_600;
+    expect(await publisher.tick()).toBe('published');
+    expect(fresh.state.sent).toHaveLength(1);
+  });
+
+  it('stops forcing once the republish is confirmed', async () => {
+    const { publisher, fresh } = await reconciledAgainstEmptyChain();
+    now += 3_600;
+    expect(await publisher.tick()).toBe('published');
+    store.updateSettings({ publishIntervalSec: 0 });
+    expect(await publisher.tick()).toBe('unchanged');
+    expect(fresh.state.sent).toHaveLength(1);
   });
 
   it('leaves a consistent chain alone', async () => {
@@ -183,6 +259,16 @@ describe('publisher.onchainRoot', () => {
     expect(state.reads).toBe(1);
     now += 1;
     await publisher.onchainRoot();
+    expect(state.reads).toBe(2);
+  });
+
+  it('drops the cached root after a publish so the new root is visible immediately', async () => {
+    approve(1n);
+    const { chain, state } = fakeChain(null);
+    const publisher = make(chain);
+    expect(await publisher.onchainRoot()).toBeNull();
+    expect(await publisher.tick()).toBe('published');
+    expect(await publisher.onchainRoot()).toBe(treeRoot([1n]));
     expect(state.reads).toBe(2);
   });
 });
