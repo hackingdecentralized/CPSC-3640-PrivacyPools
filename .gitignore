@@ -3,3 +3,6 @@ node_modules/
 *.env.local
 deploy/.env
 .DS_Store
+deployments/anvil.json
+deployments/raw/anvil/
+core/packages/contracts/broadcast-anvil/

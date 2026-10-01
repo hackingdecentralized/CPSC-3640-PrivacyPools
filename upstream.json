@@ -1,0 +1,12 @@
+{
+  "privacy-pools-core": {
+    "repo": "https://github.com/0xbow-io/privacy-pools-core",
+    "sha": "d494b63e79f33bb2b0c8ece6cdacdca465c3b884",
+    "prefix": "core"
+  },
+  "privacy-pools-website": {
+    "repo": "https://github.com/0xbow-io/privacy-pools-website",
+    "sha": "7df411128f7a18a61a77f7a0371bf0b857969e2a",
+    "prefix": "website"
+  }
+}
