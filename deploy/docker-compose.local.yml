@@ -1,0 +1,64 @@
+# Local override: the same ASP and relayer images, against the anvil Sepolia fork, without Caddy or TLS.
+# Nothing secret is written to disk: the relayer key and admin settings come from your shell at run time.
+#
+#   # 1. fork Sepolia, deploy the course contracts, keep anvil on :8547
+#   KEEP_ANVIL=1 ANVIL_PORT=8547 ETHEREUM_SEPOLIA_RPC=https://ethereum-sepolia-rpc.publicnode.com ./scripts/rehearse-anvil.sh
+#   # 2. the ASP signs as the impersonated postman: unlock it on anvil and give it gas money
+#   cast rpc anvil_impersonateAccount 0x5Ea5000000000000000000000000000000000D02 --rpc-url http://127.0.0.1:8547
+#   cast rpc anvil_setBalance 0x5Ea5000000000000000000000000000000000D02 0x56BC75E2D63100000 --rpc-url http://127.0.0.1:8547
+#   # 3. start the stack (RELAYER_PRIVATE_KEY = anvil dev account #2, a public test key: local only, never on Sepolia)
+#   ADMIN_ADDRESSES=0xYourTeacherWallet ADMIN_TOKEN_SECRET=$(openssl rand -hex 32) RELAYER_PRIVATE_KEY=0x... \
+#     docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.local.yml up -d --build --wait
+#   curl -s localhost:8080/health; curl -s localhost:13000/ping
+#   # 4. tear down; -v drops the local volumes, because the next fork needs a fresh ASP database
+#   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.local.yml down -v
+#
+# host.docker.internal is the host machine (Docker Desktop provides it; extra_hosts adds it on Linux, where anvil
+# must also listen on 0.0.0.0 instead of 127.0.0.1).
+
+# Separate project: local containers and volumes never mix with a real deployment on the same machine.
+name: privacy-pool-local
+
+services:
+  asp:
+    environment:
+      RPC_URL: http://host.docker.internal:8547
+      # The ASP takes exactly one postman signer. On anvil it is the impersonated deployment postman
+      # (roles.postman in deployments/anvil.json), so the key variable is removed entirely, not just left empty.
+      POSTMAN_PRIVATE_KEY: !reset null
+      POSTMAN_UNLOCKED_ADDRESS: ${POSTMAN_UNLOCKED_ADDRESS:-0x5Ea5000000000000000000000000000000000D02}
+      # Short demo timings, as in asp/scripts/dev-anvil.sh.
+      AUTO_APPROVE_DELAY_SEC: ${AUTO_APPROVE_DELAY_SEC:-10}
+      PUBLISH_INTERVAL_SEC: ${PUBLISH_INTERVAL_SEC:-5}
+      CONFIRMATIONS: ${CONFIRMATIONS:-0}
+    volumes:
+      # DEPLOYMENT=anvil: replaces the base file's /config/deployment.json mount.
+      - type: bind
+        source: ../deployments/anvil.json
+        target: /config/deployment.json
+        read_only: true
+        bind:
+          create_host_path: false
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - 127.0.0.1:8080:8080
+
+  relayer:
+    environment:
+      RPC_URL: http://host.docker.internal:8547
+    volumes:
+      - type: bind
+        source: ../deployments/anvil.json
+        target: /config/deployment.json
+        read_only: true
+        bind:
+          create_host_path: false
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - 127.0.0.1:13000:3000
+
+  caddy:
+    # Not started locally: the services are published on localhost instead.
+    profiles: [vps]

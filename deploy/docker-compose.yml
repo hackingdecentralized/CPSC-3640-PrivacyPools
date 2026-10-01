@@ -1,0 +1,101 @@
+# Course Privacy Pool backend for the VPS: Teaching ASP + relayer behind Caddy, which serves both over HTTPS
+# with automatic certificates. Setup and operations: deploy/README.md.
+#
+#   cp .env.example .env && chmod 600 .env   # then fill it in
+#   ./up.sh                                   # checks .env, then `docker compose up -d --build --wait`
+#
+# Compose reads deploy/.env (the directory of this file) for the ${...} values below. Each container receives only
+# its own variables: the postman key and admin secret go to the ASP only, the relayer key to the relayer only,
+# and Caddy sees just the two hostnames. Missing secrets are caught by up.sh and again by each service at start-up.
+#
+# Local run of the same stack against the anvil Sepolia fork: docker-compose.local.yml.
+name: privacy-pool
+
+# deployments/<DEPLOYMENT>.json from the repo, read-only. A missing file is an error (instead of Docker silently
+# creating an empty directory in its place).
+x-deployment-file: &deployment-file
+  type: bind
+  source: ../deployments/${DEPLOYMENT:-sepolia}.json
+  target: /config/deployment.json
+  read_only: true
+  bind:
+    create_host_path: false
+
+services:
+  asp:
+    build: ../asp
+    restart: unless-stopped
+    environment:
+      RPC_URL: ${RPC_URL:-}
+      POSTMAN_PRIVATE_KEY: ${POSTMAN_PRIVATE_KEY:-}
+      ADMIN_ADDRESSES: ${ADMIN_ADDRESSES:-}
+      ADMIN_TOKEN_SECRET: ${ADMIN_TOKEN_SECRET:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      # Optional tuning; empty means the ASP's default (see .env.example).
+      AUTO_APPROVE_DELAY_SEC: ${AUTO_APPROVE_DELAY_SEC:-}
+      PUBLISH_INTERVAL_SEC: ${PUBLISH_INTERVAL_SEC:-}
+      POLL_INTERVAL_MS: ${POLL_INTERVAL_MS:-}
+      CONFIRMATIONS: ${CONFIRMATIONS:-}
+      LOG_CHUNK_SIZE: ${LOG_CHUNK_SIZE:-}
+    volumes:
+      - *deployment-file
+      # The ASP database. The teacher's declines and settings live only here: never delete this volume.
+      - asp-data:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+      start_interval: 2s
+
+  relayer:
+    build:
+      context: ../core/packages
+      # Relative to the build context.
+      dockerfile: ../../deploy/relayer.Dockerfile
+      # deploy/relayer.Dockerfile copies relayer-entrypoint.mjs from this named context (this directory).
+      additional_contexts:
+        deploy: .
+    restart: unless-stopped
+    environment:
+      RPC_URL: ${RPC_URL:-}
+      RELAYER_PRIVATE_KEY: ${RELAYER_PRIVATE_KEY:-}
+      # Flat fee for both assets in basis points: 10 = 0.1%. The unmodified website refuses a 0 fee; the
+      # pools cap it at 100.
+      RELAYER_FEE_BPS: ${RELAYER_FEE_BPS:-10}
+    volumes:
+      - *deployment-file
+      - relayer-data:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/ping').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+      start_interval: 2s
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - asp
+      - relayer
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      ASP_HOST: ${ASP_HOST:-}
+      RELAYER_HOST: ${RELAYER_HOST:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificates and the ACME account: keep them, or Caddy re-issues on every start and can hit rate limits.
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  asp-data:
+  relayer-data:
+  caddy-data:
+  caddy-config:

@@ -1,0 +1,12 @@
+# Caddy terminates HTTPS for both services and obtains and renews their certificates automatically.
+# ASP_HOST and RELAYER_HOST come from deploy/.env (via docker-compose.yml); both must resolve to this server,
+# and ports 80 and 443 must be reachable from the internet for the ACME challenge.
+# CORS is handled by the services themselves (ASP: CORS_ORIGINS; relayer: open), so Caddy only proxies.
+
+{$ASP_HOST} {
+	reverse_proxy asp:8080
+}
+
+{$RELAYER_HOST} {
+	reverse_proxy relayer:3000
+}
